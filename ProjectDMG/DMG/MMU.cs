@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ProjectDMG {
-    class MMU {
+    public class MMU {
 
         private byte[] ROM = new byte[0x8000];
         private byte[] VRAM = new byte[0x2000];
