@@ -46,20 +46,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cycles.cs" />
-    <Compile Include="MMU.cs" />
-    <Compile Include="CPU.cs" />
-    <Compile Include="Form.cs">
+    <Compile Include="DMG\Cycles.cs" />
+    <Compile Include="DMG\MMU.cs" />
+    <Compile Include="DMG\CPU.cs" />
+    <Compile Include="GUI\Form.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form.Designer.cs">
+    <Compile Include="GUI\Form.Designer.cs">
       <DependentUpon>Form.cs</DependentUpon>
     </Compile>
-    <Compile Include="PPU.cs" />
+    <Compile Include="DMG\PPU.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectDMG.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Form.resx">
+    <EmbeddedResource Include="GUI\Form.resx">
       <DependentUpon>Form.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
