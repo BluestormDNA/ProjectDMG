@@ -1,9 +1,10 @@
-﻿using System.Windows.Forms;
+﻿using System;
+using System.Windows.Forms;
 
 namespace ProjectDMG {
     public class PPU {
 
-        DirectBitmap bmp;
+        private DirectBitmap bmp;
 
         public PPU() {
             bmp = new DirectBitmap(160, 144);
@@ -11,10 +12,12 @@ namespace ProjectDMG {
 
         public void RenderFrame(MMU mmu, PictureBox pictureBox) {
 
-            for (int i = 0; i < length; i++) {
+            Console.WriteLine("Updating");
 
-            }
+        }
 
+        internal void update(int cycles, MMU mmu) {
+           
         }
 
     }
