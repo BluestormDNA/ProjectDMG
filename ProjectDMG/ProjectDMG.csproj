@@ -59,6 +59,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="ProjectDMG.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TIMER.cs" />
+    <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\DirectBitmap.cs" />
     <EmbeddedResource Include="GUI\Form.resx">
       <DependentUpon>Form.cs</DependentUpon>

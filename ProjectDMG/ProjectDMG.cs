@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProjectDMG.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,31 +10,53 @@ using System.Windows.Forms;
 namespace ProjectDMG {
     public class ProjectDMG {
 
+        PictureBox pictureBox;
         CPU cpu;
         MMU mmu;
         PPU ppu;
+        TIMER timer;
 
         public ProjectDMG(PictureBox pictureBox) {
 
+            this.pictureBox = pictureBox;
             cpu = new CPU();
             mmu = new MMU();
             ppu = new PPU();
+            timer = new TIMER();
 
             mmu.loadBootRom();
 
-            Thread cpuThread = new Thread(new ThreadStart(exe));
+            Thread cpuThread = new Thread(new ThreadStart(Exe));
             cpuThread.IsBackground = true;
             cpuThread.Start();
         }
 
-        public void exe() {
+        public void Exe() {
+            DateTime start = DateTime.Now;
+            DateTime elapsed = DateTime.Now;
+            int cpuCycles = 0;
+            int cyclesThisUpdate = 0;
             while (true) {
-                cpu.Exe(mmu);
+
+                while ((elapsed - start).TotalMilliseconds >= 16.67) {
+
+                    while (cyclesThisUpdate < Constants.CYCLES_PER_UPDATE) {
+                        cpuCycles = cpu.Exe(mmu);
+                        cyclesThisUpdate += cpuCycles;
+
+                        timer.update(cpuCycles, mmu);
+                        ppu.update(cpuCycles, mmu);
+                    }
+
+                    ppu.RenderFrame(mmu, pictureBox);
+                    cyclesThisUpdate = 0;
+                    start = DateTime.Now;
+                }
+
+                elapsed = DateTime.Now;
             }
         }
-
-
     }
 
-        
+
 }
