@@ -23,13 +23,14 @@ namespace ProjectDMG {
         private bool FlagH { get { return (F & 0x20) != 0; } set { F = value ? (byte)(F | 0x20) : (byte)(F & ~0x20); } }
         private bool FlagC { get { return (F & 0x10) != 0; } set { F = value ? (byte)(F | 0x10) : (byte)(F & ~0x10); } }
 
-        private int cycles;
         private bool EI;
+        private int cycles;
 
-        public void Exe(MMU mmu) {
+        public int Exe(MMU mmu) {
 
             byte opcode = mmu.readByte(PC++);
-            debug(mmu, opcode);
+            cycles = 0;
+            //debug(mmu, opcode);
                                                                                                                                  
             switch (opcode) {
                 case 0x00:                                      break; //NOP        1 4     ----
@@ -365,6 +366,7 @@ namespace ProjectDMG {
                 default: warnUnsupportedOpcode(opcode);     break;
             }
             cycles += Cycles.Value[opcode];
+            return cycles;
         }
 
         private void PREFIX_CB(MMU mmu, byte opcode) {
@@ -759,7 +761,7 @@ namespace ProjectDMG {
                 sbyte sb = (sbyte)mmu.readByte(PC);
                 PC = (ushort)(PC + sb);
                 PC += 1; //<---- //TODO WHAT?
-                cycles = Cycles.JUMP_RELATIVE_TRUE;
+                cycles += Cycles.JUMP_RELATIVE_TRUE;
             } else {
                 PC += 1;
                 cycles += Cycles.JUMP_RELATIVE_FALSE;
@@ -892,7 +894,7 @@ namespace ProjectDMG {
         private void JUMP(MMU mmu, bool flag) {
             if (flag) {
                 PC = mmu.readWord(PC);
-                cycles = Cycles.JUMP_TRUE;
+                cycles += Cycles.JUMP_TRUE;
             } else {
                 PC += 2;
                 cycles += Cycles.JUMP_FALSE;
