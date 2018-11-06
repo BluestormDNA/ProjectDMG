@@ -38,7 +38,7 @@ namespace ProjectDMG {
             int cyclesThisUpdate = 0;
             while (true) {
 
-                while ((elapsed - start).TotalMilliseconds >= 16.67) {
+                while ((elapsed - start).TotalMilliseconds >= Constants.MILLIS_PER_FRAME) {
 
                     while (cyclesThisUpdate < Constants.CYCLES_PER_UPDATE) {
                         cpuCycles = cpu.Exe(mmu);
