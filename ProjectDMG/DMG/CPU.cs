@@ -30,7 +30,7 @@ namespace ProjectDMG {
 
             byte opcode = mmu.readByte(PC++);
             cycles = 0;
-            //debug(mmu, opcode);
+            debug(mmu, opcode);
                                                                                                                                  
             switch (opcode) {
                 case 0x00:                                      break; //NOP        1 4     ----
@@ -47,7 +47,7 @@ namespace ProjectDMG {
                     A = (byte)((A << 1) | (A >> 7));
                     break;
 
-                case 0x08: mmu.writeWord(mmu.readWord(PC), SP); break; //LD (A16),SP 3 20   ----
+                case 0x08: mmu.writeWord(mmu.readWord(PC), SP); PC += 2; break; //LD (A16),SP 3 20   ----
                 case 0x09: DAD(BC);                             break; //ADD HL,BC   1 8    -0HC
                 case 0x0A: A = mmu.readByte(BC);                break; //LD A,(BC)   1 8    ----
                 case 0x0B: BC -= 1;                             break; //DEC BC      1 8    ----
@@ -62,7 +62,7 @@ namespace ProjectDMG {
                     break;
 
                 case 0x10: STOP();                              break; //STOP        2 4    ----
-                case 0x11: DE = mmu.readWord(PC); PC += 2; ;    break; //LD DE,D16   3 12   ----
+                case 0x11: DE = mmu.readWord(PC); PC += 2;      break; //LD DE,D16   3 12   ----
                 case 0x12: mmu.writeByte(DE, A);                break; //LD (DE),A   1 8    ----
                 case 0x13: DE += 1;                             break; //INC DE      1 8    ----
                 case 0x14: D = INC(D);                          break; //INC D       1 8    Z0H-
@@ -93,7 +93,7 @@ namespace ProjectDMG {
 
                 case 0x20: JR(mmu, !FlagZ);                     break; //JR NZ R8    2 12/8 ---- 
                 case 0x21: HL = mmu.readWord(PC); PC += 2;      break; //LD HL,D16   3 12   ----
-                case 0x22: mmu.writeWord(HL++, A); PC += 2;     break; //LD (HL+),A   1 8   ----
+                case 0x22: mmu.writeWord(HL++, A);              break; //LD (HL+),A  1 8    ----
                 case 0x23: HL += 1;                             break; //INC HL      1 8    ----
                 case 0x24: H = INC(H);                          break; //INC H       1 8    Z0H-
                 case 0x25: H = DEC(H);                          break; //DEC H       1 8    Z1H-
@@ -140,11 +140,11 @@ namespace ProjectDMG {
 
                 case 0x38: JR(mmu, FlagC);                                 break; //JR C R8    2 12/8  ----
                 case 0x39: DAD(SP);                                        break; //ADD HL,SP  1 8     -0HC
-                case 0x3A: A = mmu.readByte(HL--); PC += 2;                break; //LD A (HL-) 1 8     ----
+                case 0x3A: A = mmu.readByte(HL--);                         break; //LD A (HL-) 1 8     ----
                 case 0x3B: SP -= 1;                                        break; //DEC SP     1 8     ----
                 case 0x3C: A = INC(A);                                     break; //INC A      1 4     Z0H-
                 case 0x3D: A = DEC(A);                                     break; //DEC (HL)   1 4     Z1H-
-                case 0x3E: A = mmu.readByte(PC); PC += 1; ;                break; //LD A,D8    2 8     ----
+                case 0x3E: A = mmu.readByte(PC); PC += 1;                  break; //LD A,D8    2 8     ----
                 case 0x3F: FlagC = !FlagC; FlagN = false; FlagH = false;   break; //CCF        1 4     -00C
 
                 case 0x40: /*B = B;*/             break; //LD B,B	    1 4    ----
@@ -291,7 +291,7 @@ namespace ProjectDMG {
                 case 0xBE: CP(mmu.readByte(HL));  break; //CP M     	1 8    Z1HC
                 case 0xBF: CP(A);                 break; //CP A     	1 4    Z1HC
 
-                case 0xC0: RETURN(mmu, !FlagZ);             break; //RET NZ	    1 20/8  ----
+                case 0xC0: RETURN(mmu, !FlagZ);             break; //RET NZ	     1 20/8  ----
                 case 0xC1: BC = POP(mmu);                   break; //POP BC      1 12    ----
                 case 0xC2: JUMP(mmu, !FlagZ);               break; //JP NZ,A16   3 16/12 ----
                 case 0xC3: JUMP(mmu, true);                 break; //JP A16      3 16    ----
@@ -329,16 +329,16 @@ namespace ProjectDMG {
 
                 case 0xE0: mmu.writeWord(combineRegs(0xFF, mmu.readByte(PC)), A); PC += 1;  break; //LDH (A8),A 2 12 ----
                 case 0xE1: HL = POP(mmu);                   break; //POP HL      1 12    ----
-                case 0xE2: mmu.writeWord(combineRegs(0xFF, mmu.readByte(C)), A);            break; //LD (C),A   2 8  ----
+                case 0xE2: mmu.writeWord(combineRegs(0xFF, mmu.readByte(C)), A); PC += 1;   break; //LD (C),A   2 8  ----
                 //case 0xE3:                                break; //Illegal Opcode
                 //case 0xE4:                                break; //Illegal Opcode
                 case 0xE5: PUSH(mmu, HL);                   break; //PUSH HL     1 16    ----
                 case 0xE6: AND(mmu.readByte(PC)); PC += 1;  break; //AND D8      2 8     Z010
                 case 0xE7: RST(mmu, 0x20);                  break; //RST 4 20    1 16    ----
 
-                case 0xE8: ADDSP(mmu.readByte(PC));         break; //ADD SP,R8   2 16    00HC
+                case 0xE8: ADDSP(mmu.readByte(PC)); PC += 1;break; //ADD SP,R8   2 16    00HC
                 case 0xE9: PC = mmu.readWord(HL);           break; //JP (HL)     1 4     ----
-                case 0xEA: mmu.writeWord(mmu.readWord(PC), A);                              break; //LD (A16),A 3 16 ----
+                case 0xEA: mmu.writeWord(mmu.readWord(PC), A); PC += 2;                     break; //LD (A16),A 3 16 ----
                 //case 0xEB:                                break; //Illegal Opcode
                 //case 0xEC:                                break; //Illegal Opcode
                 //case 0xED:                                break; //Illegal Opcode
@@ -909,13 +909,15 @@ namespace ProjectDMG {
         private void PUSH(MMU mmu, ushort w) {// (SP - 1) < -PC.hi; (SP - 2) < -PC.lo
             SP -= 2;
             mmu.writeWord(SP, w);
+            //Console.WriteLine("stack PUSH " + w.ToString("x4"));
+            //Console.WriteLine("whats on mem: " + mmu.readWord(SP).ToString("x4"));
             //Console.WriteLine("stack PUSH = " + d16.ToString("x4") + " SP = " + SP.ToString("x4") + " value" + BitConverter.ToUInt16(memory, SP).ToString("x4"));
         }
 
         private ushort POP(MMU mmu) {
             ushort ret = mmu.readWord(SP);
             //ushort ret = combineRegs(memory[SP + 1], memory[SP]);
-            //Console.WriteLine("stack POP = " + ret.ToString("x4") + " SP = " + SP.ToString("x4") + " value" + BitConverter.ToUInt16(memory, PC).ToString("x4"));
+            //Console.WriteLine("stack POP = " + ret.ToString("x4") + " SP = " + SP.ToString("x4") + " value" + mmu.readWord(SP).ToString("x4"));
             SP += 2;
             return ret;
         }
