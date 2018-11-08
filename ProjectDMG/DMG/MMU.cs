@@ -50,7 +50,7 @@ namespace ProjectDMG {
         }
 
         public void writeByte(ushort addr, byte b) {
-            switch (addr) {                                             // General Memory Map 64KB
+            switch (addr) {                                              // General Memory Map 64KB
                 case ushort r when addr >= 0x0000 && addr <= 0x7FFF:     //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00) 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
                     Console.WriteLine("Warning: Tried to write to ROM space " + addr.ToString("x4") + " " + b.ToString("x2"));
                     break;

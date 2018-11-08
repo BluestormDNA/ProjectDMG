@@ -345,9 +345,9 @@ namespace ProjectDMG {
                 case 0xEE: XOR(mmu.readByte(PC)); PC += 1;  break; //XOR D8      2 8     Z000
                 case 0xEF: RST(mmu, 0x28);                  break; //RST 5 28    1 16    ----
 
-                case 0xF0: A = mmu.readByte(PC); PC += 1;   break; //LDH A,(A8)  2 12    ----
+                case 0xF0: A = mmu.readByte((ushort)(0xFF00 + mmu.readByte(PC))); PC += 1;  break; //LDH A,(A8)  2 12    ----
                 case 0xF1: AF = POP(mmu);                   break; //POP AF      1 12    ZNHC
-                case 0xF2: A = mmu.readByte(C); PC += 1;    break; //LD A,(C)    2 8     ----
+                case 0xF2: A = mmu.readByte((ushort)(0xFF00 + C)); PC += 1;  break; //LD A,(C)    2 8     ----
                 case 0xF3: EI = false;                      break; //DI          1 4     ----
                 //case 0xF4:                                break; //Illegal Opcode
                 case 0xF5: PUSH(mmu, AF);                   break; //PUSH AF     1 16    ----
