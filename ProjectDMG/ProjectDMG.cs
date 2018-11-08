@@ -40,7 +40,7 @@ namespace ProjectDMG {
 
                 while ((elapsed - start).TotalMilliseconds >= Constants.MILLIS_PER_FRAME) {
 
-                    while (cyclesThisUpdate < Constants.CYCLES_PER_UPDATE) {
+                    while (cyclesThisUpdate < Constants.REFRESH_RATE) {
                         cpuCycles = cpu.Exe(mmu);
                         cyclesThisUpdate += cpuCycles;
 
