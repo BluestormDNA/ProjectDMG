@@ -88,12 +88,10 @@ namespace ProjectDMG {
         }
 
         public ushort readWord(ushort addr) {
-            return (ushort)(readByte((byte)(addr + 1)) << 8 | readByte(addr));
+            return (ushort)(readByte((ushort)(addr + 1)) << 8 | readByte(addr));
         }
 
         public void writeWord(ushort addr, ushort w) {
-            //Console.WriteLine("Byte H Addr: " + ((byte)(addr + 1)).ToString("x4") + " H b: " + (byte)(w >> 8));
-            //Console.WriteLine("Byte L Addr: " + (byte)(addr) + " L b: " + (byte)(w));
             writeByte((ushort)(addr + 1), (byte)(w >> 8));
             writeByte(addr, (byte)w);
         }
