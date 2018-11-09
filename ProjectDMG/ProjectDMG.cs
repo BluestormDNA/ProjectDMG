@@ -59,7 +59,7 @@ namespace ProjectDMG {
         }
 
         private void handleInterrupts(MMU mmu, CPU cpu) {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 
