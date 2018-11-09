@@ -46,6 +46,7 @@ namespace ProjectDMG {
 
                         timer.update(cpuCycles, mmu);
                         ppu.update(cpuCycles, mmu);
+                        handleInterrupts(mmu, cpu);
                     }
 
                     ppu.RenderFrame(mmu, pictureBox);
@@ -55,6 +56,10 @@ namespace ProjectDMG {
 
                 elapsed = DateTime.Now;
             }
+        }
+
+        private void handleInterrupts(MMU mmu, CPU cpu) {
+            throw new NotImplementedException();
         }
     }
 
