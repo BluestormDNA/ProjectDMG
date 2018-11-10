@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace ProjectDMG {
     public class MMU {
 
+        //Memory Banks
         private byte[] ROM = new byte[0x8000];
         private byte[] VRAM = new byte[0x2000];
         private byte[] ERAM = new byte[0x2000];
@@ -19,6 +20,23 @@ namespace ProjectDMG {
         private byte[] IO = new byte[0x80];
         private byte[] HRAM = new byte[0x7F];
         private byte IE;
+
+        //Timer IO Regs
+        public byte DIV { get { return readByte(0xFF04); } set { IO[4] = value; } } //FF04 - DIV - Divider Register (R/W) bypasses special div case: on write always 0
+        public byte TIMA { get { return readByte(0xFF05); } set { writeByte(0xFF05, value); } } //FF05 - TIMA - Timer counter (R/W)
+        public byte TMA { get { return readByte(0xFF06); } set { writeByte(0xFF06, value); } } //FF06 - TMA - Timer Modulo (R/W)
+        public byte TAC { get { return readByte(0xFF07); } set { writeByte(0xFF07, value); } } //FF07 - TAC - Timer Control (R/W)
+        public bool TAC_ENABLED { get { return (TAC & 0x4) != 0; } } // Check if byte 2 is 1
+        public byte TAC_FREQ { get { return (byte)(TAC & 0x3); } } // returns byte 0 and 1
+
+        //Interrupt IO Flags
+        //Bit 0: V-Blank Interrupt Enable(INT 40h)  (1=Enable)
+        //Bit 1: LCD STAT Interrupt Enable(INT 48h)  (1=Enable)
+        //Bit 2: Timer Interrupt Enable(INT 50h)  (1=Enable)
+        //Bit 3: Serial Interrupt Enable(INT 58h)  (1=Enable)
+        //Bit 4: Joypad Interrupt Enable(INT 60h)  (1=Enable)
+        public byte IO_IE { get { return readByte(0xFFFF); } set { writeByte(0xFFFF, value); } }//FFFF - IE - Interrupt Enable (R/W)
+        public byte IF { get { return readByte(0xFF0F); } set { writeByte(0xFF0F, value); } }//FF0F - IF - Interrupt Flag (R/W)
 
         public byte readByte(ushort addr) {
             switch (addr) {                                             // General Memory Map 64KB
@@ -39,9 +57,9 @@ namespace ProjectDMG {
                 case ushort r when addr >= 0xFEA0 && addr <= 0xFEFF:    // FEA0-FEFF Not Usable
                     return 0;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
-                    return IO[addr & 0x80];
+                    return IO[addr & 0x7F];
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
-                    return HRAM[addr & 0x7F];
+                    return HRAM[addr & 0x7E];
                 case 0xFFFF:                                            // FFFF Interrupt Enable Register.
                     return IE;
                 default:
@@ -76,10 +94,11 @@ namespace ProjectDMG {
                     Console.WriteLine("Warning: Tried to write to NOT USABLE space");
                     break;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
-                    IO[addr & 0x80] = b;
+                    b = (byte)(addr == 0xFF04 ? 0 : b); //TODO handle other I/Os
+                    IO[addr & 0x7F] = b;
                     break;
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
-                    HRAM[addr & 0x7F] = b;
+                    HRAM[addr & 0x7E] = b;
                     break;
                 case 0xFFFF: // FFFF Interrupt Enable Register.
                     IE = b;
@@ -94,6 +113,14 @@ namespace ProjectDMG {
         public void writeWord(ushort addr, ushort w) {
             writeByte((ushort)(addr + 1), (byte)(w >> 8));
             writeByte(addr, (byte)w);
+        }
+
+        public byte bitSet(byte n, byte v) {
+            return v |= (byte)(1 << n);
+        }
+
+        public byte bitClear(byte n, byte v) {
+            return v &= (byte)~(1 << n);
         }
 
         public void loadBootRom() {
