@@ -13,7 +13,6 @@ namespace ProjectDMG {
 
         private int divCounter;
         private int timerCounter;
-        private int currentTacFreq;
 
         public void update(int cycles, MMU mmu) {
             divCounter += cycles;
