@@ -23,7 +23,7 @@ namespace ProjectDMG {
         private bool FlagH { get { return (F & 0x20) != 0; } set { F = value ? (byte)(F | 0x20) : (byte)(F & ~0x20); } }
         private bool FlagC { get { return (F & 0x10) != 0; } set { F = value ? (byte)(F | 0x10) : (byte)(F & ~0x10); } }
 
-        private bool EI;
+        private bool IME;
         private int cycles;
 
         public int Exe(MMU mmu) {
@@ -319,7 +319,7 @@ namespace ProjectDMG {
                 case 0xD7: RST(mmu, 0x10);                  break; //RST 2 10    1 16    ----
 
                 case 0xD8: RETURN(mmu, FlagC);              break; //RET C       1 20/8  ----
-                case 0xD9: RETURN(mmu, true); EI = true;    break; //RETI        1 16    ----
+                case 0xD9: RETURN(mmu, true); IME = true;    break; //RETI        1 16    ----
                 case 0xDA: JUMP(mmu, FlagC);                break; //JP C,A16    3 16/12 ----
                 //case 0xDB:                                break; //Illegal Opcode
                 case 0xDC: CALL(mmu, FlagC);                break; //Call C,A16  3 24/12 ----
@@ -348,7 +348,7 @@ namespace ProjectDMG {
                 case 0xF0: A = mmu.readByte((ushort)(0xFF00 + mmu.readByte(PC))); PC += 1;  break; //LDH A,(A8)  2 12    ----
                 case 0xF1: AF = POP(mmu);                   break; //POP AF      1 12    ZNHC
                 case 0xF2: A = mmu.readByte((ushort)(0xFF00 + C)); PC += 1;  break; //LD A,(C)    2 8     ----
-                case 0xF3: EI = false;                      break; //DI          1 4     ----
+                case 0xF3: IME = false;                      break; //DI          1 4     ----
                 //case 0xF4:                                break; //Illegal Opcode
                 case 0xF5: PUSH(mmu, AF);                   break; //PUSH AF     1 16    ----
                 case 0xF6: OR(mmu.readByte(PC)); PC += 1;   break; //OR D8       2 8     Z000
@@ -357,7 +357,7 @@ namespace ProjectDMG {
                 case 0xF8: HL = (ushort)(SP + mmu.readByte(PC)); PC += 1; break; //LD HL,SP+R8 2 12    00HC <----- //TODO FALTAN FLAGS
                 case 0xF9: SP = HL;                         break; //LD SP,HL    1 8     ----
                 case 0xFA: A = mmu.readByte(PC); PC += 2;   break; //LD A,(A16)  3 16    ----
-                case 0xFB: EI = true;                       break; //EI          1 4     ----
+                case 0xFB: IME = true;                       break; //IME          1 4     ----
                 //case 0xFC:                                break; //Illegal Opcode
                 //case 0xFD:                                break; //Illegal Opcode
                 case 0xFE: CP(mmu.readByte(PC)); PC += 1;   break; //CP D8       2 8     Z1HC
