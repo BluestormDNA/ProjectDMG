@@ -38,6 +38,23 @@ namespace ProjectDMG {
         public byte IO_IE { get { return readByte(0xFFFF); } set { writeByte(0xFFFF, value); } }//FFFF - IE - Interrupt Enable (R/W)
         public byte IF { get { return readByte(0xFF0F); } set { writeByte(0xFF0F, value); } }//FF0F - IF - Interrupt Flag (R/W)
 
+        //PPU IO Regs
+        public byte LCDC { get { return readByte(0xFF40); } }//FF40 - LCDC - LCD Control (R/W)
+        public byte STAT { get { return readByte(0xFF41); } }//FF41 - STAT - LCDC Status (R/W)
+
+        public byte SCY { get { return readByte(0xFF42); } }//FF42 - SCY - Scroll Y (R/W)
+        public byte SCX { get { return readByte(0xFF43); } }//FF43 - SCX - Scroll X (R/W)
+        public byte LY { get { return readByte(0xFF44); } }//FF44 - LY - LCDC Y-Coordinate (R)
+        public byte LYC { get { return readByte(0xFF45); } }//FF45 - LYC - LY Compare(R/W)
+        public byte WY { get { return readByte(0xFF4A); } }//FF4A - WY - Window Y Position (R/W)
+        public byte WX { get { return readByte(0xFF4B); } }//FF4B - WX - Window X Position minus 7 (R/W)
+
+        public byte BGP { get { return readByte(0xFF47); } }//FF47 - BGP - BG Palette Data(R/W) - Non CGB Mode Only
+        public byte OBP0 { get { return readByte(0xFF48); } }//FF48 - OBP0 - Object Palette 0 Data (R/W) - Non CGB Mode Only
+        public byte OBP1 { get { return readByte(0xFF49); } }//FF49 - OBP1 - Object Palette 1 Data (R/W) - Non CGB Mode Only
+
+        public byte DMA { get { return readByte(0xFF46); } }//FF46 - DMA - DMA Transfer and Start Address (R/W)
+
         public byte readByte(ushort addr) {
             switch (addr) {                                             // General Memory Map 64KB
                 case ushort r when addr >= 0x0000 && addr <= 0x7FFF:    //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00) 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
