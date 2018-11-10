@@ -59,7 +59,7 @@ namespace ProjectDMG {
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
                     return IO[addr & 0x7F];
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
-                    return HRAM[addr & 0x7E];
+                    return HRAM[addr & 0x7F];
                 case 0xFFFF:                                            // FFFF Interrupt Enable Register.
                     return IE;
                 default:
@@ -98,7 +98,7 @@ namespace ProjectDMG {
                     IO[addr & 0x7F] = b;
                     break;
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
-                    HRAM[addr & 0x7E] = b;
+                    HRAM[addr & 0x7F] = b;
                     break;
                 case 0xFFFF: // FFFF Interrupt Enable Register.
                     IE = b;
