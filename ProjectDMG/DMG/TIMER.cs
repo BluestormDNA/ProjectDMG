@@ -35,14 +35,11 @@ namespace ProjectDMG {
                     timerCounter -= TAC_FREQ[mmu.TAC_FREQ];
                 }
                 if(mmu.TIMA == 0xFF) {
-                    requestTimerInterrupt(mmu);
+                    mmu.requestInterrupt(2);
                     mmu.TIMA = mmu.TMA;
                 }
             }
         }
 
-        private void requestTimerInterrupt(MMU mmu) {
-            mmu.IF = mmu.bitSet(2, mmu.IF);
-        }
     }
 }
