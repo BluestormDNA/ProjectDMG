@@ -142,10 +142,8 @@ namespace ProjectDMG {
         }
 
         public bool isBit(byte n, byte v) {
-            //bit = (number >> n) & 1U;
             return ((v >> n) & 1) == 1;
         }
-
 
         public void requestInterrupt(byte b) {
             IF = bitSet(b, IF);
