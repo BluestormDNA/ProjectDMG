@@ -112,6 +112,7 @@ namespace ProjectDMG {
                     break;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
                     b = (byte)(addr == 0xFF04 ? 0 : b); //TODO handle other I/Os
+                    b = (byte)(addr == 0xFF44 ? 0 : b); //TODO handle other I/Os
                     IO[addr & 0x7F] = b;
                     break;
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
