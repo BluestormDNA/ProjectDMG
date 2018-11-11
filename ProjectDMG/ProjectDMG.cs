@@ -21,7 +21,7 @@ namespace ProjectDMG {
             this.pictureBox = pictureBox;
             cpu = new CPU();
             mmu = new MMU();
-            ppu = new PPU();
+            ppu = new PPU(pictureBox);
             timer = new TIMER();
 
             mmu.loadBootRom();
@@ -44,7 +44,7 @@ namespace ProjectDMG {
                         cpuCycles = cpu.Exe(mmu);
                         cyclesThisUpdate += cpuCycles;
 
-                        //timer.update(cpuCycles, mmu);
+                        timer.update(cpuCycles, mmu);
                         ppu.update(cpuCycles, mmu);
                         handleInterrupts(mmu, cpu);
                     }

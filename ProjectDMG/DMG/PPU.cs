@@ -5,20 +5,22 @@ namespace ProjectDMG {
     public class PPU {
 
         private DirectBitmap bmp;
+        private PictureBox pictureBox;
 
-        public PPU() {
+        public PPU(PictureBox pictureBox) {
+            this.pictureBox = pictureBox;
             bmp = new DirectBitmap(160, 144);
+            pictureBox.Image = bmp.Bitmap;
+        }
+
+        public void update(int cycles, MMU mmu) {
+           
         }
 
         public void RenderFrame(MMU mmu, PictureBox pictureBox) {
 
-            Console.WriteLine("Updating");
+            Console.WriteLine("Rendering Frame");
 
         }
-
-        internal void update(int cycles, MMU mmu) {
-           
-        }
-
     }
 }
