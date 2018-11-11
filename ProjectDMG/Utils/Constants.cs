@@ -10,5 +10,7 @@ namespace ProjectDMG.Utils {
         public const float REFRESH_RATE = 59.7275f;
         public const int CYCLES_PER_UPDATE = (int)(DMG_4Mhz / REFRESH_RATE);
         public const float MILLIS_PER_FRAME = 16.74f;
+
+
     }
 }
