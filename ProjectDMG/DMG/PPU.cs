@@ -7,6 +7,7 @@ namespace ProjectDMG {
         private const int SCREEN_WIDTH = 160;
         private const int SCREEN_HEIGHT = 144;
         private const int SCANLINE_CYCLES = 456;
+        private const int VBLANK_INTERRUPT = 0; //Bit 0: V-Blank Interrupt Request(INT 40h)  (1=Request)
 
         private DirectBitmap bmp;
         private PictureBox pictureBox;
@@ -26,11 +27,19 @@ namespace ProjectDMG {
                     scanlineCounter -= SCANLINE_CYCLES;
 
                     if(mmu.LY == SCREEN_HEIGHT) { //should this be 145? as 144+1 between 145 and 153???
-
+                        mmu.requestInterrupt(VBLANK_INTERRUPT);
+                    } else if (mmu.LY > SCREEN_HEIGHT) {
+                        mmu.LY = 0;
+                    } else if (mmu.LY < SCREEN_HEIGHT) {
+                        drawScanLine(mmu);
                     }
 
                 }
             }
+        }
+
+        private void drawScanLine(MMU mmu) {
+            //throw new NotImplementedException();
         }
 
         public void RenderFrame(MMU mmu, PictureBox pictureBox) {
