@@ -10,6 +10,7 @@ namespace ProjectDMG {
         //01: CPU Clock / 16   (DMG, CGB: 262144 Hz, SGB: ~268400 Hz)
         //10: CPU Clock / 64   (DMG, CGB:  65536 Hz, SGB:  ~67110 Hz)
         //11: CPU Clock / 256  (DMG, CGB:  16384 Hz, SGB:  ~16780 Hz)
+        private const int TIMER_INTERRUPT = 2; // Bit 2: Timer    Interrupt Request (INT 50h)  (1=Request)
 
         private int divCounter;
         private int timerCounter;
@@ -35,7 +36,7 @@ namespace ProjectDMG {
                     timerCounter -= TAC_FREQ[mmu.TAC_FREQ];
                 }
                 if(mmu.TIMA == 0xFF) {
-                    mmu.requestInterrupt(2);
+                    mmu.requestInterrupt(TIMER_INTERRUPT);
                     mmu.TIMA = mmu.TMA;
                 }
             }
