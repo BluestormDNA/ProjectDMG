@@ -44,7 +44,7 @@ namespace ProjectDMG {
 
         public byte SCY { get { return readByte(0xFF42); } }//FF42 - SCY - Scroll Y (R/W)
         public byte SCX { get { return readByte(0xFF43); } }//FF43 - SCX - Scroll X (R/W)
-        public byte LY { get { return readByte(0xFF44); } }//FF44 - LY - LCDC Y-Coordinate (R)
+        public byte LY { get { return readByte(0xFF44); } set { writeByte(0xFF44, value); } }//FF44 - LY - LCDC Y-Coordinate (R)
         public byte LYC { get { return readByte(0xFF45); } }//FF45 - LYC - LY Compare(R/W)
         public byte WY { get { return readByte(0xFF4A); } }//FF4A - WY - Window Y Position (R/W)
         public byte WX { get { return readByte(0xFF4B); } }//FF4B - WX - Window X Position minus 7 (R/W)
@@ -139,6 +139,16 @@ namespace ProjectDMG {
 
         public byte bitClear(byte n, byte v) {
             return v &= (byte)~(1 << n);
+        }
+
+        public bool isBit(byte n, byte v) {
+            //bit = (number >> n) & 1U;
+            return ((v >> n) & 1) == 1;
+        }
+
+
+        public void requestInterrupt(byte b) {
+            IF = bitSet(b, IF);
         }
 
         public void loadBootRom() {
