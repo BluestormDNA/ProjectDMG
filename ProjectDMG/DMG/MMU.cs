@@ -40,11 +40,11 @@ namespace ProjectDMG {
 
         //PPU IO Regs
         public byte LCDC { get { return readByte(0xFF40); } }//FF40 - LCDC - LCD Control (R/W)
-        public byte STAT { get { return readByte(0xFF41); } }//FF41 - STAT - LCDC Status (R/W)
+        public byte STAT { get { return readByte(0xFF41); } set { readByte(0xFF41); } }//FF41 - STAT - LCDC Status (R/W)
 
         public byte SCY { get { return readByte(0xFF42); } }//FF42 - SCY - Scroll Y (R/W)
         public byte SCX { get { return readByte(0xFF43); } }//FF43 - SCX - Scroll X (R/W)
-        public byte LY { get { return readByte(0xFF44); } set { writeByte(0xFF44, value); } }//FF44 - LY - LCDC Y-Coordinate (R)
+        public byte LY { get { return readByte(0xFF44); } set { IO[44] = value; } }//FF44 - LY - LCDC Y-Coordinate (R)
         public byte LYC { get { return readByte(0xFF45); } }//FF45 - LYC - LY Compare(R/W)
         public byte WY { get { return readByte(0xFF4A); } }//FF4A - WY - Window Y Position (R/W)
         public byte WX { get { return readByte(0xFF4B); } }//FF4B - WX - Window X Position minus 7 (R/W)
