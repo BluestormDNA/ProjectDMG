@@ -11,8 +11,6 @@ namespace ProjectDMG {
         private const int VRAM_CYCLES = 172;
         private const int HBLANK_CYCLES = 204;
         private const int SCANLINE_CYCLES = 456;
-        private const int VBLANK_INTERRUPT = 0; //Bit 0: V-Blank Interrupt Request(INT 40h)  (1=Request)
-        private const int LCDSTAT_INTERRUPT = 1; //Bit 1: LCD STAT Interrupt Request (INT 48h)  (1=Request)
 
         private DirectBitmap bmp;
         private PictureBox pictureBox;
@@ -28,46 +26,87 @@ namespace ProjectDMG {
             scanlineCounter += cycles;
 
             byte currentMode = (byte)(mmu.STAT & 0b00000011);
-            byte mode = 0;
-            bool interrupt = false;
 
             if (isLCDEnabled(mmu)) {
-                //Accessing OAM - Mode 2 (80 cycles)
-                if (scanlineCounter <= OAM_CYCLES) {
+                switch (currentMode) {
+                    case 2: //Accessing OAM - Mode 2 (80 cycles)
+                        if (scanlineCounter >= OAM_CYCLES) {
+                            changeSTATMode(3, mmu);
+                            scanlineCounter = 0;
+                        }
+                        break;
+                    case 3: //Accessing VRAM - Mode 3 (172 cycles) Total M2+M3 = 252 Cycles
+                        if (scanlineCounter >= VRAM_CYCLES) {
+                            changeSTATMode(0, mmu);
+                            drawScanLine(mmu);
+                            scanlineCounter = 0;
+                        }
+                        break;
+                    case 0: //HBLANK - Mode 0 (204 cycles) Total M2+M3+M0 = 456 Cycles
+                        if (scanlineCounter >= HBLANK_CYCLES) {
+                            mmu.LY++;
+                            scanlineCounter = 0;
+                            
+                            if(mmu.LY == SCREEN_HEIGHT) { //check if we arrived Vblank
+                                changeSTATMode(1, mmu);
+                                //we should draw frame here
+                            } else { //not arrived yet so return to 2
+                                changeSTATMode(2, mmu);
+                            }
+                        }
+                        break;
+                    case 1: //VBLANK - Mode 1 (4560 cycles - 10 lines)
+                        if (scanlineCounter >= SCANLINE_CYCLES) {
+                            mmu.LY++;
+                            scanlineCounter = 0;
 
-
-                //Accessing VRAM - Mode 3 (172 cycles) Total M2+M3 = 252 Cycles
-                } else if (scanlineCounter <= OAM_CYCLES + VRAM_CYCLES) {
-
-                
-                //HBLANK - Mode 0 (204 cycles) Total M2+M3+M0 = 456 Cycles
-                } else if (scanlineCounter <= OAM_CYCLES + VRAM_CYCLES + HBLANK_CYCLES) {
-
-
-                //END OF HBLANK AND VBLANK - Mode 1 (4560 cycles) 10 lines
-                } else if (scanlineCounter >= SCANLINE_CYCLES) {
-                    //Handle Hblank End
-                    mmu.LY++;
-                    scanlineCounter -= SCANLINE_CYCLES;
-
-                    //handle VBlank
-                    //Set Mode 1
-
-
-                    if (mmu.LY == SCREEN_HEIGHT) {
-                        mmu.requestInterrupt(VBLANK_INTERRUPT);
-                    } else if (mmu.LY > SCREEN_VBLANK_HEIGHT) {
-                        mmu.LY = 0;
-                    } else if (mmu.LY < SCREEN_HEIGHT) {
-                        drawScanLine(mmu);
-                    }
-
+                            if (mmu.LY > SCREEN_VBLANK_HEIGHT) { //check end of VBLANK
+                                changeSTATMode(2, mmu);
+                                mmu.LY = 0;
+                            }
+                        }
+                        break;
                 }
             } else { //LCD Disabled
                 scanlineCounter = 0;
                 mmu.LY = 0;
                 mmu.STAT = (byte)(mmu.STAT & ~0b11111100);
             }
+        }
+
+        private void changeSTATMode(int mode, MMU mmu) {
+            switch (mode) {
+                case 2: //Accessing OAM - Mode 2 (80 cycles)
+                    mmu.bitSet(1, mmu.STAT);
+                    mmu.bitClear(0, mmu.STAT);
+                    if (mmu.isBit(5, mmu.STAT)) { // Bit 5 - Mode 2 OAM Interrupt         (1=Enable) (Read/Write)
+                        requestPPUInterrupt(5);
+                    } 
+                    break;
+                case 3: //Accessing VRAM - Mode 3 (172 cycles) Total M2+M3 = 252 Cycles
+                    mmu.bitSet(1, mmu.STAT);
+                    mmu.bitSet(0, mmu.STAT);
+                    break;
+                case 0: //HBLANK - Mode 0 (204 cycles) Total M2+M3+M0 = 456 Cycles
+                    mmu.bitClear(1, mmu.STAT);
+                    mmu.bitClear(0, mmu.STAT);
+                    if (mmu.isBit(3, mmu.STAT)) { // Bit 3 - Mode 0 H-Blank Interrupt     (1=Enable) (Read/Write)
+                        requestPPUInterrupt(3);
+                    }
+                    break;
+                case 1: //VBLANK - Mode 1 (4560 cycles - 10 lines)
+
+                    mmu.bitClear(1, mmu.STAT);
+                    mmu.bitSet(0, mmu.STAT);
+                    if (mmu.isBit(4, mmu.STAT)) { // Bit 4 - Mode 1 V-Blank Interrupt     (1=Enable) (Read/Write)
+                        requestPPUInterrupt(4);
+                    } 
+                    break;
+            }
+        }
+
+        private void requestPPUInterrupt(int v) {
+            //throw new NotImplementedException();
         }
 
         private void drawScanLine(MMU mmu) {
