@@ -30,7 +30,9 @@ namespace ProjectDMG {
 
             byte opcode = mmu.readByte(PC++);
             cycles = 0;
-            debug(mmu, opcode);
+            dev++;
+            if (dev > 100000) { debug(mmu, opcode); }
+
                                                                                                                                  
             switch (opcode) {
                 case 0x00:                                      break; //NOP        1 4     ----

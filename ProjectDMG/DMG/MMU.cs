@@ -17,12 +17,12 @@ namespace ProjectDMG {
         private byte[] WRAM_MIRROR = new byte[0x1E00];
         private byte[] OAM = new byte[0xA0];
         //private byte[] NOT_USABLE = new byte[0x60];
-        private byte[] IO = new byte[0x80];
+        public byte[] IO = new byte[0x80];
         private byte[] HRAM = new byte[0x7F];
         private byte IE;
 
         //Timer IO Regs
-        public byte DIV { get { return readByte(0xFF04); } set { IO[4] = value; } } //FF04 - DIV - Divider Register (R/W) bypasses special div case: on write always 0
+        public byte DIV { get { return readByte(0xFF04); } set { writeByte(0xFF04, value); } } //FF04 - DIV - Divider Register (R/W) bypasses special div case: on write always 0
         public byte TIMA { get { return readByte(0xFF05); } set { writeByte(0xFF05, value); } } //FF05 - TIMA - Timer counter (R/W)
         public byte TMA { get { return readByte(0xFF06); } set { writeByte(0xFF06, value); } } //FF06 - TMA - Timer Modulo (R/W)
         public byte TAC { get { return readByte(0xFF07); } set { writeByte(0xFF07, value); } } //FF07 - TAC - Timer Control (R/W)
@@ -40,11 +40,11 @@ namespace ProjectDMG {
 
         //PPU IO Regs
         public byte LCDC { get { return readByte(0xFF40); } }//FF40 - LCDC - LCD Control (R/W)
-        public byte STAT { get { return readByte(0xFF41); } set { readByte(0xFF41); } }//FF41 - STAT - LCDC Status (R/W)
+        public byte STAT { get { return readByte(0xFF41); } set { writeByte(0xFF41, value); } }//FF41 - STAT - LCDC Status (R/W)
 
         public byte SCY { get { return readByte(0xFF42); } }//FF42 - SCY - Scroll Y (R/W)
         public byte SCX { get { return readByte(0xFF43); } }//FF43 - SCX - Scroll X (R/W)
-        public byte LY { get { return readByte(0xFF44); } set { IO[44] = value; } }//FF44 - LY - LCDC Y-Coordinate (R)
+        public byte LY { get { return readByte(0xFF44); } set { writeByte(0xFF44, value); } }//FF44 - LY - LCDC Y-Coordinate (R)
         public byte LYC { get { return readByte(0xFF45); } }//FF45 - LYC - LY Compare(R/W)
         public byte WY { get { return readByte(0xFF4A); } }//FF4A - WY - Window Y Position (R/W)
         public byte WX { get { return readByte(0xFF4B); } }//FF4B - WX - Window X Position minus 7 (R/W)
@@ -111,8 +111,8 @@ namespace ProjectDMG {
                     Console.WriteLine("Warning: Tried to write to NOT USABLE space");
                     break;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
-                    b = (byte)(addr == 0xFF04 ? 0 : b); //TODO handle other I/Os
-                    b = (byte)(addr == 0xFF44 ? 0 : b); //TODO handle other I/Os
+                    //b = (byte)(addr == 0xFF04 ? 0 : b); //TODO handle other I/Os
+                    //b = (byte)(addr == 0xFF44 ? 0 : b); //TODO handle other I/Os
                     IO[addr & 0x7F] = b;
                     break;
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
@@ -154,6 +154,11 @@ namespace ProjectDMG {
             Array.Copy(rom, 0, ROM, 0, rom.Length);
         }
 
+        public void debugIO() {
+            for (int i = 0; i < IO.Length; i++) {
+                Console.Write(IO[i].ToString("x2") + " ");
+            }
+        }
     }
 }
 

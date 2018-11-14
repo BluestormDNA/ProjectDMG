@@ -38,7 +38,7 @@ namespace ProjectDMG {
             int cyclesThisUpdate = 0;
             while (true) {
 
-                while ((elapsed - start).TotalMilliseconds >= Constants.MILLIS_PER_FRAME) {
+                //while ((elapsed - start).TotalMilliseconds >= Constants.MILLIS_PER_FRAME) {
 
                     while (cyclesThisUpdate < Constants.REFRESH_RATE) {
                         cpuCycles = cpu.Exe(mmu);
@@ -49,10 +49,10 @@ namespace ProjectDMG {
                         handleInterrupts(mmu, cpu);
                     }
 
-                    ppu.RenderFrame(mmu, pictureBox);
+                    //ppu.RenderFrame(mmu, pictureBox);
                     cyclesThisUpdate = 0;
                     start = DateTime.Now;
-                }
+                //}
 
                 elapsed = DateTime.Now;
             }
