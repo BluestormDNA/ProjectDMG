@@ -374,7 +374,6 @@ namespace ProjectDMG {
         }
 
         private void PREFIX_CB(MMU mmu, byte opcode) {
-            Console.WriteLine("Inside CB with opcode" + opcode.ToString("x2"));
             switch (opcode) {
                 case 0x00: B = RLC(B);                                  break; //RLC B    2   8   Z00C
                 case 0x01: C = RLC(C);                                  break; //RLC C    2   8   Z00C
@@ -395,7 +394,7 @@ namespace ProjectDMG {
                 case 0x0F: A = RRC(A);                                  break; //RRC B    2   8   Z00C
                                                                            
                 case 0x10: B = RL(B);                                   break; //RL B     2   8   Z00C
-                case 0x11: Console.WriteLine("0x11");                                   break; //RL C     2   8   Z00C
+                case 0x11: C = RL(C);                                   break; //RL C     2   8   Z00C
                 case 0x12: D = RL(D);                                   break; //RL D     2   8   Z00C
                 case 0x13: E = RL(E);                                   break; //RL E     2   8   Z00C
                 case 0x14: H = RL(H);                                   break; //RL H     2   8   Z00C
@@ -964,10 +963,10 @@ namespace ProjectDMG {
             Console.WriteLine("cycle" + dev++ + " " + (PC - 1).ToString("x4") + " " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
                 + " BC: " + B.ToString("x2") + "" + C.ToString("x2") + " DE: " + D.ToString("x2") + "" + E.ToString("x2") + " HL: " + H.ToString("x2") + "" + L.ToString("x2")
                 + " op " + opcode.ToString("x2") + " next16 " + mmu.readWord(PC).ToString("x4"));
-            //if ( PC == 0x101 || PC == 0x100) {
-            //    mmu.debugVRAM();
-            //    Console.ReadLine();
-            //}
+            if ( PC == 0x101 || PC == 0x100) {
+                mmu.debugVRAM();
+               Console.ReadLine();
+            }
         }
 
 
