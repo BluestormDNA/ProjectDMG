@@ -181,7 +181,7 @@ namespace ProjectDMG {
                     return Color.DarkGray;
                 case 0b11:
                     return Color.Black;
-                default:
+                default: //Just in case something is wrong
                     return Color.Red;
             }
         }
@@ -193,7 +193,6 @@ namespace ProjectDMG {
         }
 
         public byte GetColorIdThroughtPalette(MMU mmu, byte colorId) {
-            Console.WriteLine("BGP: "+ mmu.BGP.ToString("x2") + "ColorId " + colorId);
             switch (colorId) {
                 case 0b00:
                     return (byte)(mmu.BGP & 0b00000011);
@@ -203,8 +202,8 @@ namespace ProjectDMG {
                     return (byte)((mmu.BGP & 0b00110000) >> 4);
                 case 0b11:
                     return (byte)((mmu.BGP & 0b11000000) >> 6);
-                default:
-                    return 0xFF; // TODO
+                default: //Just in case something is wrong
+                    return 0xFF; 
             }
         }
 
