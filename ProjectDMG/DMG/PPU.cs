@@ -139,18 +139,18 @@ namespace ProjectDMG {
                 byte tileCol = (byte)(x / 8);
                 ushort tileAdress = (ushort)(getTileMapAdress(mmu) + tileRow + tileCol);
 
-                //Console.WriteLine("TileRow: " + tileRow.ToString("x2"));
-                //Console.WriteLine("TileCol: " + tileCol.ToString("x2"));
-                //Console.WriteLine("TileAdress: " + tileAdress.ToString("x4"));
-                //Console.WriteLine("TileMapAdress: " + (getTileMapAdress(mmu) + tileRow + tileCol).ToString("x4"));
-                //Console.WriteLine("TileDataAdress: " + (getTileDataAdress(mmu) + mmu.readByte(tileAdress) * 16).ToString("x4"));
-                //Console.WriteLine(mmu.readByte(0x8010));
-                //Console.WriteLine(mmu.readByte(tileAdress));
+                Console.WriteLine("TileRow: " + tileRow.ToString("x2"));
+                Console.WriteLine("TileCol: " + tileCol.ToString("x2"));
+                Console.WriteLine("TileAdress: " + tileAdress.ToString("x4"));
+                Console.WriteLine("TileMapAdress: " + (getTileMapAdress(mmu) + tileRow + tileCol).ToString("x4"));
+                Console.WriteLine("TileDataAdress: " + (getTileDataAdress(mmu) + mmu.readByte(tileAdress) * 16).ToString("x4"));
+                Console.WriteLine("8010 " + mmu.readByte(0x8010).ToString("x2"));
+                Console.WriteLine(mmu.readByte(tileAdress));
 
 
                 ushort tileLoc;
                 if (isSignedAdress(mmu)) {
-                    tileLoc = (ushort)(getTileDataAdress(mmu) + mmu.readByte(tileAdress) * 16);
+                    tileLoc = 0x8190;//(ushort)(getTileDataAdress(mmu) + mmu.readByte(tileAdress) * 16);
                 } else {
                     tileLoc = (ushort)(getTileDataAdress(mmu) + ((sbyte)mmu.readByte(tileAdress) + 128) * 16);
                 }
@@ -162,19 +162,17 @@ namespace ProjectDMG {
 
                 byte colorBit = (byte)((x % 8 - 7) * -1);
 
-                Color color = getColor(colorBit, b1, b2);
-
+                byte colorId = GetColorIdBits(colorBit, b1, b2);
+                byte colorIdThroughtPalette = GetColorIdThroughtPalette(mmu, colorId);
+                Color color = GetColor(colorIdThroughtPalette);
+                
                 bmp.SetPixel(p, mmu.LY, color);
             }
 
         }
 
-        private Color getColor(byte colorBit, byte b1, byte b2) {
-            int firstValue = (b2 >> colorBit) & 0x1;
-            int secondValue = (b1 >> colorBit) & 0x1;
-            byte colorValue = (byte)(firstValue << 1 | secondValue);
-
-            switch (colorValue) {
+        private Color GetColor(byte colorIdThroughtPalette) {
+            switch (colorIdThroughtPalette) {
                 case 0b00:
                     return Color.White;
                 case 0b01:
@@ -185,6 +183,28 @@ namespace ProjectDMG {
                     return Color.Black;
                 default:
                     return Color.Red;
+            }
+        }
+
+        private byte GetColorIdBits(byte colorBit, byte b1, byte b2) {
+            int hi = (b2 >> colorBit) & 0x1;
+            int lo = (b1 >> colorBit) & 0x1;
+            return (byte)(hi << 1 | lo);
+        }
+
+        public byte GetColorIdThroughtPalette(MMU mmu, byte colorId) {
+            Console.WriteLine("BGP: "+ mmu.BGP.ToString("x2") + "ColorId " + colorId);
+            switch (colorId) {
+                case 0b00:
+                    return (byte)(mmu.BGP & 0b00000011);
+                case 0b01:
+                    return (byte)((mmu.BGP & 0b00001100) >> 2);
+                case 0b10:
+                    return (byte)((mmu.BGP & 0b00110000) >> 4);
+                case 0b11:
+                    return (byte)((mmu.BGP & 0b11000000) >> 6);
+                default:
+                    return 0xFF; // TODO
             }
         }
 
