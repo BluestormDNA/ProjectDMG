@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace ProjectDMG {
@@ -11,6 +12,7 @@ namespace ProjectDMG {
         private const int VRAM_CYCLES = 172;
         private const int HBLANK_CYCLES = 204;
         private const int SCANLINE_CYCLES = 456;
+        private const int H_PIXELS = 160;
 
         private DirectBitmap bmp;
         private PictureBox pictureBox;
@@ -24,61 +26,62 @@ namespace ProjectDMG {
 
         public void update(int cycles, MMU mmu) {
             scanlineCounter += cycles;
-            byte currentMode = (byte)(mmu.STAT & 0b00000011);
+            byte currentMode = (byte)(mmu.STAT & 0b00000011); //Current Mode Mask
             //Console.WriteLine("Update PPU STAT:" + mmu.STAT.ToString("x2") + " " + currentMode) ;
 
-            //if (isLCDEnabled(mmu)) {
-            switch (currentMode) {
-                case 2: //Accessing OAM - Mode 2 (80 cycles)
-                    if (scanlineCounter >= OAM_CYCLES) {
-                        changeSTATMode(3, mmu);
-                        scanlineCounter = 0;
-                        //Console.WriteLine("Update PPU INSIDE OAM");
-                    }
-                    break;
-                case 3: //Accessing VRAM - Mode 3 (172 cycles) Total M2+M3 = 252 Cycles
-                    if (scanlineCounter >= VRAM_CYCLES) {
-                        changeSTATMode(0, mmu);
-                        drawScanLine(mmu);
-                        scanlineCounter = 0;
-                       // Console.WriteLine("Update PPU INSIDE VRAM");
-                    }
-                    break;
-                case 0: //HBLANK - Mode 0 (204 cycles) Total M2+M3+M0 = 456 Cycles
-                    if (scanlineCounter >= HBLANK_CYCLES) {
-                        //Console.WriteLine("Update PPU INSIDE HBLANK" + mmu.LY);
-                        //mmu.debugIO();
-
-                        mmu.LY++;
-                        scanlineCounter = 0;
-
-                        if (mmu.LY == SCREEN_HEIGHT) { //check if we arrived Vblank
-                            changeSTATMode(1, mmu);
-                            //we should draw frame here
-                        } else { //not arrived yet so return to 2
-                            changeSTATMode(2, mmu);
+            if (isLCDEnabled(mmu)) {
+                switch (currentMode) {
+                    case 2: //Accessing OAM - Mode 2 (80 cycles)
+                        if (scanlineCounter >= OAM_CYCLES) {
+                            changeSTATMode(3, mmu);
+                            scanlineCounter = 0;
+                            //Console.WriteLine("Update PPU INSIDE OAM");
                         }
-                    }
-                    break;
-                case 1: //VBLANK - Mode 1 (4560 cycles - 10 lines)
-                    if (scanlineCounter >= SCANLINE_CYCLES) {
-                        mmu.LY++;
-                        scanlineCounter = 0;
-
-                        //Console.WriteLine("Update PPU INSIDE VBLANK");
-
-                        if (mmu.LY > SCREEN_VBLANK_HEIGHT) { //check end of VBLANK
-                            changeSTATMode(2, mmu);
-                            mmu.LY = 0;
+                        break;
+                    case 3: //Accessing VRAM - Mode 3 (172 cycles) Total M2+M3 = 252 Cycles
+                        if (scanlineCounter >= VRAM_CYCLES) {
+                            changeSTATMode(0, mmu);
+                            drawScanLine(mmu);
+                            scanlineCounter = 0;
+                            // Console.WriteLine("Update PPU INSIDE VRAM");
                         }
-                    }
-                    break;
+                        break;
+                    case 0: //HBLANK - Mode 0 (204 cycles) Total M2+M3+M0 = 456 Cycles
+                        if (scanlineCounter >= HBLANK_CYCLES) {
+                            //Console.WriteLine("Update PPU INSIDE HBLANK" + mmu.LY);
+                            //mmu.debugIO();
+
+                            mmu.LY++;
+                            scanlineCounter = 0;
+
+                            if (mmu.LY == SCREEN_HEIGHT) { //check if we arrived Vblank
+                                changeSTATMode(1, mmu);
+                                //we should draw frame here
+                            } else { //not arrived yet so return to 2
+                                changeSTATMode(2, mmu);
+                            }
+                        }
+                        break;
+                    case 1: //VBLANK - Mode 1 (4560 cycles - 10 lines)
+                        if (scanlineCounter >= SCANLINE_CYCLES) {
+                            mmu.LY++;
+                            scanlineCounter = 0;
+
+                            //Console.WriteLine("Update PPU INSIDE VBLANK");
+
+                            if (mmu.LY > SCREEN_VBLANK_HEIGHT) { //check end of VBLANK
+                                changeSTATMode(2, mmu);
+                                mmu.LY = 0;
+                            }
+                        }
+                        break;
+                }
+
+            } else { //LCD Disabled
+                scanlineCounter = 0;
+                mmu.LY = 0;
+                mmu.STAT = (byte)(mmu.STAT & ~0b11111100);
             }
-            //} else { //LCD Disabled
-            //    scanlineCounter = 0;
-            //    mmu.LY = 0;
-            //    mmu.STAT = (byte)(mmu.STAT & ~0b11111100);
-            //}
         }
 
         private void changeSTATMode(int mode, MMU mmu) {
@@ -117,15 +120,115 @@ namespace ProjectDMG {
         }
 
         private void drawScanLine(MMU mmu) {
-            //throw new NotImplementedException();
+            if (mmu.isBit(0, mmu.LCDC)) {
+                renderTiles(mmu);
+            }
+            if (mmu.isBit(1, mmu.LCDC)) {
+                renderSprites(mmu);
+            }
+        }
+
+        private void renderTiles(MMU mmu) {
+            //TODO WINDOW
+            int y = mmu.SCY + mmu.LY;
+            byte tileRow = (byte)(y / 8 * 32);
+
+            for (int p = 0; p < H_PIXELS; p++) {
+                int x = p + mmu.SCX;
+
+                byte tileCol = (byte)(x / 8);
+                ushort tileAdress = (ushort)(getTileMapAdress(mmu) + tileRow + tileCol);
+
+                //Console.WriteLine("TileRow: " + tileRow.ToString("x2"));
+                //Console.WriteLine("TileCol: " + tileCol.ToString("x2"));
+                //Console.WriteLine("TileAdress: " + tileAdress.ToString("x4"));
+                //Console.WriteLine("TileMapAdress: " + (getTileMapAdress(mmu) + tileRow + tileCol).ToString("x4"));
+                //Console.WriteLine("TileDataAdress: " + (getTileDataAdress(mmu) + mmu.readByte(tileAdress) * 16).ToString("x4"));
+                //Console.WriteLine(mmu.readByte(0x8010));
+                //Console.WriteLine(mmu.readByte(tileAdress));
+
+
+                ushort tileLoc;
+                if (isSignedAdress(mmu)) {
+                    tileLoc = (ushort)(getTileDataAdress(mmu) + mmu.readByte(tileAdress) * 16);
+                } else {
+                    tileLoc = (ushort)(getTileDataAdress(mmu) + ((sbyte)mmu.readByte(tileAdress) + 128) * 16);
+                }
+
+                byte tileLine = (byte)(y % 8 * 2);
+
+                byte b1 = mmu.readByte((ushort)(tileLoc + tileLine));
+                byte b2 = mmu.readByte((ushort)(tileLoc + tileLine + 1));
+
+                byte colorBit = (byte)((x % 8 - 7) * -1);
+
+                Color color = getColor(colorBit, b1, b2);
+
+                bmp.SetPixel(p, mmu.LY, color);
+            }
+
+        }
+
+        private Color getColor(byte colorBit, byte b1, byte b2) {
+            int firstValue = (b2 >> colorBit) & 0x1;
+            int secondValue = (b1 >> colorBit) & 0x1;
+            byte colorValue = (byte)(firstValue << 1 | secondValue);
+
+            switch (colorValue) {
+                case 0b00:
+                    return Color.White;
+                case 0b01:
+                    return Color.Gray;
+                case 0b10:
+                    return Color.DarkGray;
+                case 0b11:
+                    return Color.Black;
+                default:
+                    return Color.Red;
+            }
+        }
+
+        private bool isSignedAdress(MMU mmu) {
+            //Bit 4 - BG & Window Tile Data Select   (0=8800-97FF, 1=8000-8FFF)
+            return mmu.isBit(4, mmu.LCDC);
+        }
+
+        private ushort getTileMapAdress(MMU mmu) {
+            //Bit 3 - BG Tile Map Display Select     (0=9800-9BFF, 1=9C00-9FFF)
+            if (mmu.isBit(3, mmu.LCDC)) {
+                return 0x9C00;
+            } else {
+                return 0x9800;
+            }
+        }
+
+        private ushort getTileDataAdress(MMU mmu) {
+            //Bit 4 - BG & Window Tile Data Select   (0=8800-97FF, 1=8000-8FFF)
+            if (mmu.isBit(4, mmu.LCDC)) {
+                return 0x8000;
+            } else {
+                //unsig
+                return 0x8800;
+            }
+        }
+
+        private void renderSprites(MMU mmu) {
+            throw new NotImplementedException();
         }
 
         public void RenderFrame(MMU mmu, PictureBox pictureBox) {
-            Console.WriteLine("Rendering Frame");
+            if (pictureBox.InvokeRequired) {
+                pictureBox.Invoke(new MethodInvoker(
+                delegate () {
+                    pictureBox.Refresh();
+                }));
+            } else {
+                pictureBox.Refresh();
+            }
         }
 
         private bool isLCDEnabled(MMU mmu) {
-            return mmu.isBit(7, mmu.STAT);
+            return mmu.isBit(7, mmu.LCDC);
         }
     }
 }

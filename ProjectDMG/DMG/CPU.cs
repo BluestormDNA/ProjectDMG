@@ -26,13 +26,15 @@ namespace ProjectDMG {
         private bool IME;
         private int cycles;
 
+        private int test;
+
         public int Exe(MMU mmu) {
 
             byte opcode = mmu.readByte(PC++);
             cycles = 0;
-            dev++;
-            if (dev > 100000) { debug(mmu, opcode); }
 
+            //if (PC == 0xA4 || PC == 0x99  || PC == 0x9A || PC == 0x9B || PC == 0x9C || PC == 0xA0)
+            debug(mmu, opcode);
                                                                                                                                  
             switch (opcode) {
                 case 0x00:                                      break; //NOP        1 4     ----
@@ -305,7 +307,7 @@ namespace ProjectDMG {
                 case 0xC8: RETURN(mmu, FlagZ);              break; //RET Z       1 20/8  ----
                 case 0xC9: RETURN(mmu, true);               break; //RET         1 16    ----
                 case 0xCA: JUMP(mmu, FlagZ);                break; //JP Z,A16    3 16/12 ----
-                case 0xCB: PREFIX_CB(mmu, (byte)PC++);      break; //PREFIX CB OPCODE TABLE  //FALTARIA AVANZARLO
+                case 0xCB: PREFIX_CB(mmu, mmu.readByte(PC++));      break; //PREFIX CB OPCODE TABLE
                 case 0xCC: CALL(mmu, FlagZ);                break; //CALL Z,A16  3 24/12 ----
                 case 0xCD: CALL(mmu, true);                 break; //CALL A16    3 24    ----
                 case 0xCE: ADC(mmu.readByte(PC)); PC += 1;  break; //ADC A,D8    2 8     ----
@@ -321,7 +323,7 @@ namespace ProjectDMG {
                 case 0xD7: RST(mmu, 0x10);                  break; //RST 2 10    1 16    ----
 
                 case 0xD8: RETURN(mmu, FlagC);              break; //RET C       1 20/8  ----
-                case 0xD9: RETURN(mmu, true); IME = true;    break; //RETI        1 16    ----
+                case 0xD9: RETURN(mmu, true); IME = true;   break; //RETI        1 16    ----
                 case 0xDA: JUMP(mmu, FlagC);                break; //JP C,A16    3 16/12 ----
                 //case 0xDB:                                break; //Illegal Opcode
                 case 0xDC: CALL(mmu, FlagC);                break; //Call C,A16  3 24/12 ----
@@ -359,7 +361,7 @@ namespace ProjectDMG {
                 case 0xF8: HL = (ushort)(SP + mmu.readByte(PC)); PC += 1; break; //LD HL,SP+R8 2 12    00HC <----- //TODO FALTAN FLAGS
                 case 0xF9: SP = HL;                         break; //LD SP,HL    1 8     ----
                 case 0xFA: A = mmu.readByte(PC); PC += 2;   break; //LD A,(A16)  3 16    ----
-                case 0xFB: IME = true;                       break; //IME          1 4     ----
+                case 0xFB: IME = true;                      break; //IME          1 4     ----
                 //case 0xFC:                                break; //Illegal Opcode
                 //case 0xFD:                                break; //Illegal Opcode
                 case 0xFE: CP(mmu.readByte(PC)); PC += 1;   break; //CP D8       2 8     Z1HC
@@ -372,6 +374,7 @@ namespace ProjectDMG {
         }
 
         private void PREFIX_CB(MMU mmu, byte opcode) {
+            Console.WriteLine("Inside CB with opcode" + opcode.ToString("x2"));
             switch (opcode) {
                 case 0x00: B = RLC(B);                                  break; //RLC B    2   8   Z00C
                 case 0x01: C = RLC(C);                                  break; //RLC C    2   8   Z00C
@@ -392,7 +395,7 @@ namespace ProjectDMG {
                 case 0x0F: A = RRC(A);                                  break; //RRC B    2   8   Z00C
                                                                            
                 case 0x10: B = RL(B);                                   break; //RL B     2   8   Z00C
-                case 0x11: C = RL(C);                                   break; //RL C     2   8   Z00C
+                case 0x11: Console.WriteLine("0x11");                                   break; //RL C     2   8   Z00C
                 case 0x12: D = RL(D);                                   break; //RL D     2   8   Z00C
                 case 0x13: E = RL(E);                                   break; //RL E     2   8   Z00C
                 case 0x14: H = RL(H);                                   break; //RL H     2   8   Z00C
@@ -929,7 +932,7 @@ namespace ProjectDMG {
         }
 
         private void SetFlagZ(int b) {
-            FlagZ = b == 0;
+            FlagZ = (byte)b == 0;
         }
 
         private void SetFlagC(int i) {
@@ -961,6 +964,10 @@ namespace ProjectDMG {
             Console.WriteLine("cycle" + dev++ + " " + (PC - 1).ToString("x4") + " " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
                 + " BC: " + B.ToString("x2") + "" + C.ToString("x2") + " DE: " + D.ToString("x2") + "" + E.ToString("x2") + " HL: " + H.ToString("x2") + "" + L.ToString("x2")
                 + " op " + opcode.ToString("x2") + " next16 " + mmu.readWord(PC).ToString("x4"));
+            //if ( PC == 0x101 || PC == 0x100) {
+            //    mmu.debugVRAM();
+            //    Console.ReadLine();
+            //}
         }
 
 

@@ -149,6 +149,11 @@ namespace ProjectDMG {
             IF = bitSet(b, IF);
         }
 
+        public void loadGamePak() {
+            byte[] rom = File.ReadAllBytes("Tetris.gb");
+            Array.Copy(rom, 0, ROM, 0, rom.Length);
+        }
+
         public void loadBootRom() {
             byte[] rom = File.ReadAllBytes("DMG_ROM.bin");
             Array.Copy(rom, 0, ROM, 0, rom.Length);
@@ -157,6 +162,12 @@ namespace ProjectDMG {
         public void debugIO() {
             for (int i = 0; i < IO.Length; i++) {
                 Console.Write(IO[i].ToString("x2") + " ");
+            }
+        }
+
+        public void debugVRAM() {
+            for (int i = 0; i < VRAM.Length; i++) {
+                Console.Write(VRAM[i].ToString("x2") + " ");
             }
         }
     }

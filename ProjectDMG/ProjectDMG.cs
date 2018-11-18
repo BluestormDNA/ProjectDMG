@@ -24,6 +24,7 @@ namespace ProjectDMG {
             ppu = new PPU(pictureBox);
             timer = new TIMER();
 
+            mmu.loadGamePak();
             mmu.loadBootRom();
 
             Thread cpuThread = new Thread(new ThreadStart(Exe));
@@ -37,21 +38,20 @@ namespace ProjectDMG {
             int cpuCycles = 0;
             int cyclesThisUpdate = 0;
             while (true) {
-
                 //while ((elapsed - start).TotalMilliseconds >= Constants.MILLIS_PER_FRAME) {
 
-                    while (cyclesThisUpdate < Constants.REFRESH_RATE) {
-                        cpuCycles = cpu.Exe(mmu);
-                        cyclesThisUpdate += cpuCycles;
+                while (cyclesThisUpdate < Constants.REFRESH_RATE) {
+                    cpuCycles = cpu.Exe(mmu);
+                    cyclesThisUpdate += cpuCycles;
 
-                        timer.update(cpuCycles, mmu);
-                        ppu.update(cpuCycles, mmu);
-                        handleInterrupts(mmu, cpu);
-                    }
+                    timer.update(cpuCycles, mmu);
+                    ppu.update(cpuCycles, mmu);
+                    handleInterrupts(mmu, cpu);
+                }
 
-                    //ppu.RenderFrame(mmu, pictureBox);
-                    cyclesThisUpdate = 0;
-                    start = DateTime.Now;
+                ppu.RenderFrame(mmu, pictureBox);
+                cyclesThisUpdate = 0;
+                start = DateTime.Now;
                 //}
 
                 elapsed = DateTime.Now;
