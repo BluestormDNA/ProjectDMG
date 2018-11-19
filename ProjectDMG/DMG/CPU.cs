@@ -34,12 +34,8 @@ namespace ProjectDMG {
             cycles = 0;
 
             bool flag = false;
-            //if (PC == 0x87 || PC == 0x89 || PC == 0x8a) { flag = true; }
 
-            //if (flag) {
-                debug(mmu, opcode);
-                //Console.ReadLine();
-            //}
+            debug(mmu, opcode);
                                                                                                                                  
             switch (opcode) {
                 case 0x00:                                      break; //NOP        1 4     ----
@@ -336,9 +332,9 @@ namespace ProjectDMG {
                 case 0xDE: SBC(mmu.readByte(PC)); PC += 1;  break; //SBC A,A8    2 8     Z1HC
                 case 0xDF: RST(mmu, 0x18);                  break; //RST 3 18    1 16    ----
 
-                case 0xE0: mmu.writeWord(combineRegs(0xFF, mmu.readByte(PC)), A); PC += 1;  break; //LDH (A8),A 2 12 ----
+                case 0xE0: mmu.writeByte(combineRegs(0xFF, mmu.readByte(PC)), A); PC += 1;  break; //LDH (A8),A 2 12 ----
                 case 0xE1: HL = POP(mmu);                   break; //POP HL      1 12    ----
-                case 0xE2: mmu.writeWord(combineRegs(0xFF, mmu.readByte(C)), A);   break; //LD (C),A   1 8  ----
+                case 0xE2: mmu.writeByte(combineRegs(0xFF, mmu.readByte(C)), A);   break; //LD (C),A   1 8  ----
                 //case 0xE3:                                break; //Illegal Opcode
                 //case 0xE4:                                break; //Illegal Opcode
                 case 0xE5: PUSH(mmu, HL);                   break; //PUSH HL     1 16    ----
@@ -347,7 +343,7 @@ namespace ProjectDMG {
 
                 case 0xE8: ADDSP(mmu.readByte(PC)); PC += 1;break; //ADD SP,R8   2 16    00HC
                 case 0xE9: PC = mmu.readWord(HL);           break; //JP (HL)     1 4     ----
-                case 0xEA: mmu.writeWord(mmu.readWord(PC), A); PC += 2;                     break; //LD (A16),A 3 16 ----
+                case 0xEA: mmu.writeByte(mmu.readWord(PC), A); PC += 2;                     break; //LD (A16),A 3 16 ----
                 //case 0xEB:                                break; //Illegal Opcode
                 //case 0xEC:                                break; //Illegal Opcode
                 //case 0xED:                                break; //Illegal Opcode
@@ -965,7 +961,9 @@ namespace ProjectDMG {
 
         public int dev;
         private void debug(MMU mmu, byte opcode) {
-                Console.WriteLine("cycle" + dev++ + " " + (PC - 1).ToString("x4") + " " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
+            dev++;
+            if (dev > 2240000)
+                Console.WriteLine("cycle" + dev + " " + (PC - 1).ToString("x4") + " " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
                     + " BC: " + B.ToString("x2") + "" + C.ToString("x2") + " DE: " + D.ToString("x2") + "" + E.ToString("x2") + " HL: " + H.ToString("x2") + "" + L.ToString("x2")
                     + " op " + opcode.ToString("x2") + " next16 " + mmu.readWord(PC).ToString("x4"));
         }
