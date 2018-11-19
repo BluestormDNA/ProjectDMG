@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 
 namespace ProjectDMG {
     public class MMU {
-
+        
+        //BootRom
+        private byte[] BOOT_ROM = new byte[0x100];
         //Memory Banks
         private byte[] ROM = new byte[0x8000];
         private byte[] VRAM = new byte[0x2000];
@@ -20,6 +22,9 @@ namespace ProjectDMG {
         public byte[] IO = new byte[0x80];
         private byte[] HRAM = new byte[0x7F];
         private byte IE;
+
+        //BootRom Reg
+        public byte BR { get { return readByte(0xFF50); } set { writeByte(0xFF50, value); } }
 
         //Timer IO Regs
         public byte DIV { get { return readByte(0xFF04); } set { writeByte(0xFF04, value); } } //FF04 - DIV - Divider Register (R/W) bypasses special div case: on write always 0
@@ -58,7 +63,11 @@ namespace ProjectDMG {
         public byte readByte(ushort addr) {
             switch (addr) {                                             // General Memory Map 64KB
                 case ushort r when addr >= 0x0000 && addr <= 0x7FFF:    //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00) 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
-                    return ROM[addr];
+                    if (BR == 0 && addr < 0x100) {
+                        return BOOT_ROM[addr];
+                    } else {
+                        return ROM[addr];
+                    }
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
                     return VRAM[addr & 0x1FFF];
                 case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any) <br/>
@@ -88,6 +97,8 @@ namespace ProjectDMG {
             switch (addr) {                                              // General Memory Map 64KB
                 case ushort r when addr >= 0x0000 && addr <= 0x7FFF:     //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00) 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
                     Console.WriteLine("Warning: Tried to write to ROM space " + addr.ToString("x4") + " " + b.ToString("x2"));
+                    Console.WriteLine("byte at 3eff: " + readByte(0x3eff));
+                    Console.ReadLine();
                     break;
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
                     VRAM[addr & 0x1FFF] = b;
@@ -113,6 +124,9 @@ namespace ProjectDMG {
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
                     //b = (byte)(addr == 0xFF04 ? 0 : b); //TODO handle other I/Os
                     //b = (byte)(addr == 0xFF44 ? 0 : b); //TODO handle other I/Os
+                    if (addr == 0xFF02 && b == 0x81) {
+                        Console.Write(Convert.ToChar(readByte(0xFF01)));
+                    }
                     IO[addr & 0x7F] = b;
                     break;
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
@@ -150,13 +164,13 @@ namespace ProjectDMG {
         }
 
         public void loadGamePak() {
-            byte[] rom = File.ReadAllBytes("Tetris.gb");
+            byte[] rom = File.ReadAllBytes("06-ld r,r.gb");
             Array.Copy(rom, 0, ROM, 0, rom.Length);
         }
 
         public void loadBootRom() {
             byte[] rom = File.ReadAllBytes("DMG_ROM.bin");
-            Array.Copy(rom, 0, ROM, 0, rom.Length);
+            Array.Copy(rom, 0, BOOT_ROM, 0, rom.Length);
         }
 
         public void debugIO() {

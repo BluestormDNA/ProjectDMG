@@ -43,7 +43,7 @@ namespace ProjectDMG {
                             changeSTATMode(0, mmu);
                             drawScanLine(mmu);
                             scanlineCounter = 0;
-                            // Console.WriteLine("Update PPU INSIDE VRAM");
+                            //Console.WriteLine("Update PPU INSIDE VRAM");
                         }
                         break;
                     case 0: //HBLANK - Mode 0 (204 cycles) Total M2+M3+M0 = 456 Cycles
@@ -78,6 +78,7 @@ namespace ProjectDMG {
                 }
 
             } else { //LCD Disabled
+                //Console.WriteLine("LCD DISABLED");
                 scanlineCounter = 0;
                 mmu.LY = 0;
                 mmu.STAT = (byte)(mmu.STAT & ~0b11111100);
@@ -131,26 +132,18 @@ namespace ProjectDMG {
         private void renderTiles(MMU mmu) {
             //TODO WINDOW
             int y = mmu.SCY + mmu.LY;
-            byte tileRow = (byte)(y / 8 * 32);
+            //Console.WriteLine("LY: " + mmu.LY + " SCY: " + mmu.SCY);
+            ushort tileRow = (ushort)(y / 8 * 32);
 
             for (int p = 0; p < H_PIXELS; p++) {
                 int x = p + mmu.SCX;
 
-                byte tileCol = (byte)(x / 8);
+                ushort tileCol = (ushort)(x / 8);
                 ushort tileAdress = (ushort)(getTileMapAdress(mmu) + tileRow + tileCol);
-
-                Console.WriteLine("TileRow: " + tileRow.ToString("x2"));
-                Console.WriteLine("TileCol: " + tileCol.ToString("x2"));
-                Console.WriteLine("TileAdress: " + tileAdress.ToString("x4"));
-                Console.WriteLine("TileMapAdress: " + (getTileMapAdress(mmu) + tileRow + tileCol).ToString("x4"));
-                Console.WriteLine("TileDataAdress: " + (getTileDataAdress(mmu) + mmu.readByte(tileAdress) * 16).ToString("x4"));
-                Console.WriteLine("8010 " + mmu.readByte(0x8010).ToString("x2"));
-                Console.WriteLine(mmu.readByte(tileAdress));
-
 
                 ushort tileLoc;
                 if (isSignedAdress(mmu)) {
-                    tileLoc = 0x8190;//(ushort)(getTileDataAdress(mmu) + mmu.readByte(tileAdress) * 16);
+                    tileLoc = (ushort)(getTileDataAdress(mmu) + mmu.readByte(tileAdress) * 16);
                 } else {
                     tileLoc = (ushort)(getTileDataAdress(mmu) + ((sbyte)mmu.readByte(tileAdress) + 128) * 16);
                 }
