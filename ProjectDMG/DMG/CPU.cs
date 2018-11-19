@@ -98,7 +98,7 @@ namespace ProjectDMG {
 
                 case 0x20: JR(mmu, !FlagZ);                     break; //JR NZ R8    2 12/8 ---- 
                 case 0x21: HL = mmu.readWord(PC); PC += 2;      break; //LD HL,D16   3 12   ----
-                case 0x22: mmu.writeWord(HL++, A);              break; //LD (HL+),A  1 8    ----
+                case 0x22: mmu.writeByte(HL++, A);              break; //LD (HL+),A  1 8    ----
                 case 0x23: HL += 1;                             break; //INC HL      1 8    ----
                 case 0x24: H = INC(H);                          break; //INC H       1 8    Z0H-
                 case 0x25: H = DEC(H);                          break; //DEC H       1 8    Z1H-
