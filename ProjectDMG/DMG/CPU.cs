@@ -26,14 +26,10 @@ namespace ProjectDMG {
         private bool IME;
         private int cycles;
 
-        private int test;
-
         public int Exe(MMU mmu) {
 
             byte opcode = mmu.readByte(PC++);
             cycles = 0;
-
-            bool flag = false;
 
             debug(mmu, opcode);
                                                                                                                                  

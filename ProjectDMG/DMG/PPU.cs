@@ -14,6 +14,9 @@ namespace ProjectDMG {
         private const int SCANLINE_CYCLES = 456;
         private const int H_PIXELS = 160;
 
+        private const int VBLANK_INTERRUPT = 0;
+        private const int LCD_INTERRUPT = 1;
+
         private DirectBitmap bmp;
         private PictureBox pictureBox;
         private int scanlineCounter;
@@ -56,7 +59,7 @@ namespace ProjectDMG {
 
                             if (mmu.LY == SCREEN_HEIGHT) { //check if we arrived Vblank
                                 changeSTATMode(1, mmu);
-                                requestVBlankInterrupt(mmu);
+                                mmu.requestInterrupt(VBLANK_INTERRUPT);
                                 //we should draw frame here
                             } else { //not arrived yet so return to 2
                                 changeSTATMode(2, mmu);
@@ -92,7 +95,7 @@ namespace ProjectDMG {
                     mmu.STAT = mmu.bitSet(1, mmu.STAT);
                     mmu.STAT = mmu.bitClear(0, mmu.STAT);
                     if (mmu.isBit(5, mmu.STAT)) { // Bit 5 - Mode 2 OAM Interrupt         (1=Enable) (Read/Write)
-                        requestLCDInterrupt(mmu);
+                        mmu.requestInterrupt(LCD_INTERRUPT);
                     }
                     //Console.WriteLine("Inside Changestat 2:" + mmu.STAT.ToString("x2"));
                     break;
@@ -104,25 +107,17 @@ namespace ProjectDMG {
                     mmu.STAT = mmu.bitClear(1, mmu.STAT);
                     mmu.STAT = mmu.bitClear(0, mmu.STAT);
                     if (mmu.isBit(3, mmu.STAT)) { // Bit 3 - Mode 0 H-Blank Interrupt     (1=Enable) (Read/Write)
-                        requestLCDInterrupt(mmu);
+                        mmu.requestInterrupt(LCD_INTERRUPT);
                     }
                     break;
                 case 1: //VBLANK - Mode 1 (4560 cycles - 10 lines)
                     mmu.STAT = mmu.bitClear(1, mmu.STAT);
                     mmu.STAT = mmu.bitSet(0, mmu.STAT);
                     if (mmu.isBit(4, mmu.STAT)) { // Bit 4 - Mode 1 V-Blank Interrupt     (1=Enable) (Read/Write)
-                        requestLCDInterrupt(mmu);
+                        mmu.requestInterrupt(LCD_INTERRUPT);
                     }
                     break;
             }
-        }
-
-        private void requestVBlankInterrupt(MMU mmu) {
-            mmu.IF |= 0x1;
-        }
-
-        private void requestLCDInterrupt(MMU mmu) {
-            mmu.IF |= 0x2;
         }
 
         private void drawScanLine(MMU mmu) {
@@ -163,7 +158,7 @@ namespace ProjectDMG {
                 byte colorId = GetColorIdBits(colorBit, b1, b2);
                 byte colorIdThroughtPalette = GetColorIdThroughtPalette(mmu, colorId);
                 Color color = GetColor(colorIdThroughtPalette);
-                
+
                 bmp.SetPixel(p, mmu.LY, color);
             }
 
@@ -201,7 +196,7 @@ namespace ProjectDMG {
                 case 0b11:
                     return (byte)((mmu.BGP & 0b11000000) >> 6);
                 default: //Just in case something is wrong
-                    return 0xFF; 
+                    return 0xFF;
             }
         }
 
