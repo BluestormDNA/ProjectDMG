@@ -21,7 +21,6 @@ namespace ProjectDMG {
         //private byte[] NOT_USABLE = new byte[0x60];
         public byte[] IO = new byte[0x80];
         private byte[] HRAM = new byte[0x7F];
-        private byte IE;
 
         //BootRom Reg
         public byte BR { get { return readByte(0xFF50); } set { writeByte(0xFF50, value); } }
@@ -40,7 +39,7 @@ namespace ProjectDMG {
         //Bit 2: Timer Interrupt Enable(INT 50h)  (1=Enable)
         //Bit 3: Serial Interrupt Enable(INT 58h)  (1=Enable)
         //Bit 4: Joypad Interrupt Enable(INT 60h)  (1=Enable)
-        public byte IO_IE { get { return readByte(0xFFFF); } set { writeByte(0xFFFF, value); } }//FFFF - IE - Interrupt Enable (R/W)
+        public byte IE { get; set; }//FFFF - IE - Interrupt Enable (R/W)
         public byte IF { get { return readByte(0xFF0F); } set { writeByte(0xFF0F, value); } }//FF0F - IF - Interrupt Flag (R/W)
 
         //PPU IO Regs
