@@ -69,24 +69,24 @@ namespace ProjectDMG {
                         return ROM[addr];
                     }
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
-                    return VRAM[addr & 0x1FFF];
-                case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any) <br/>
-                    return ERAM[addr & 0x1FFF];
-                case ushort r when addr >= 0xC000 && addr <= 0xCFFF:    // C000-CFFF 4KB Work RAM Bank 0(WRAM) <br/>
-                    return WRAM0[addr & 0xFFF];
-                case ushort r when addr >= 0xD000 && addr <= 0xDFFF:    // D000-DFFF 4KB Work RAM Bank 1(WRAM)(switchable bank 1-7 in CGB Mode) <br/>
-                    return WRAM1[addr & 0xFFF];
-                case ushort r when addr >= 0xE000 && addr <= 0xFDFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)(typically not used) <br/>
-                    return WRAM_MIRROR[addr & 0x1DFF];
+                    return VRAM[addr - 0x8000];
+                case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any)
+                    return ERAM[addr - 0xA000];
+                case ushort r when addr >= 0xC000 && addr <= 0xCFFF:    // C000-CFFF 4KB Work RAM Bank 0(WRAM)
+                    return WRAM0[addr - 0xC000];
+                case ushort r when addr >= 0xD000 && addr <= 0xDFFF:    // D000-DFFF 4KB Work RAM Bank 1(WRAM)(switchable bank 1-7 in CGB Mode)
+                    return WRAM1[addr - 0xD000];
+                case ushort r when addr >= 0xE000 && addr <= 0xFDFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)(typically not used)
+                    return WRAM_MIRROR[addr - 0xE000];
                 case ushort r when addr >= 0xFE00 && addr <= 0xFE9F:    // FE00-FE9F Sprite Attribute Table(OAM)
-                    return OAM[addr & 0x9F];
+                    return OAM[addr - 0xFE00];
                 case ushort r when addr >= 0xFEA0 && addr <= 0xFEFF:    // FEA0-FEFF Not Usable
                     return 0;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
-                    return IO[addr & 0x7F];
+                    return IO[addr - 0xFF00];
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
-                    return HRAM[addr & 0x7F];
-                case 0xFFFF:                                            // FFFF Interrupt Enable Register.
+                    return HRAM[addr - 0xFF80];
+                case 0xFFFF:                                            // FFFF Interrupt Enable Register
                     return IE;
                 default:
                     return 0;
@@ -97,26 +97,25 @@ namespace ProjectDMG {
             switch (addr) {                                              // General Memory Map 64KB
                 case ushort r when addr >= 0x0000 && addr <= 0x7FFF:     //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00) 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
                     Console.WriteLine("Warning: Tried to write to ROM space " + addr.ToString("x4") + " " + b.ToString("x2"));
-                    Console.WriteLine("byte at 3eff: " + readByte(0x3eff));
                     Console.ReadLine();
                     break;
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
-                    VRAM[addr & 0x1FFF] = b;
+                    VRAM[addr - 0x8000] = b;
                     break;
                 case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any) <br/>
-                    ERAM[addr & 0x1FFF] = b;
+                    ERAM[addr - 0xA000] = b;
                     break;
                 case ushort r when addr >= 0xC000 && addr <= 0xCFFF:    // C000-CFFF 4KB Work RAM Bank 0(WRAM) <br/>
-                    WRAM0[addr & 0xFFF] = b;
+                    WRAM0[addr - 0xC000] = b;
                     break;
                 case ushort r when addr >= 0xD000 && addr <= 0xDFFF:    // D000-DFFF 4KB Work RAM Bank 1(WRAM)(switchable bank 1-7 in CGB Mode) <br/>
-                    WRAM1[addr & 0xFFF] = b;
+                    WRAM1[addr - 0xD000] = b;
                     break;
                 case ushort r when addr >= 0xE000 && addr <= 0xFDFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)(typically not used) <br/>
-                    WRAM_MIRROR[addr & 0x1DFF] = b;
+                    WRAM_MIRROR[addr - 0xE000] = b;
                     break;
                 case ushort r when addr >= 0xFE00 && addr <= 0xFE9F:    // FE00-FE9F Sprite Attribute Table(OAM)
-                    OAM[addr & 0x9F] = b;
+                    OAM[addr - 0xFE00] = b;
                     break;
                 case ushort r when addr >= 0xFEA0 && addr <= 0xFEFF:    // FEA0-FEFF Not Usable
                     Console.WriteLine("Warning: Tried to write to NOT USABLE space");
@@ -125,12 +124,13 @@ namespace ProjectDMG {
                     //b = (byte)(addr == 0xFF04 ? 0 : b); //TODO handle other I/Os
                     //b = (byte)(addr == 0xFF44 ? 0 : b); //TODO handle other I/Os
                     if (addr == 0xFF02 && b == 0x81) {
-                        Console.Write(Convert.ToChar(readByte(0xFF01)));
+                       Console.Write(Convert.ToChar(readByte(0xFF01)));
+                        Console.ReadKey();
                     }
-                    IO[addr & 0x7F] = b;
+                    IO[addr - 0xFF00] = b;
                     break;
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
-                    HRAM[addr & 0x7F] = b;
+                    HRAM[addr - 0xFF80] = b;
                     break;
                 case 0xFFFF: // FFFF Interrupt Enable Register.
                     IE = b;
@@ -164,7 +164,7 @@ namespace ProjectDMG {
         }
 
         public void loadGamePak() {
-            byte[] rom = File.ReadAllBytes("06-ld r,r.gb");
+            byte[] rom = File.ReadAllBytes("dr.gb");
             Array.Copy(rom, 0, ROM, 0, rom.Length);
         }
 
