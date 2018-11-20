@@ -56,6 +56,7 @@ namespace ProjectDMG {
 
                             if (mmu.LY == SCREEN_HEIGHT) { //check if we arrived Vblank
                                 changeSTATMode(1, mmu);
+                                requestVBlankInterrupt(mmu);
                                 //we should draw frame here
                             } else { //not arrived yet so return to 2
                                 changeSTATMode(2, mmu);
@@ -91,7 +92,7 @@ namespace ProjectDMG {
                     mmu.STAT = mmu.bitSet(1, mmu.STAT);
                     mmu.STAT = mmu.bitClear(0, mmu.STAT);
                     if (mmu.isBit(5, mmu.STAT)) { // Bit 5 - Mode 2 OAM Interrupt         (1=Enable) (Read/Write)
-                        requestPPUInterrupt(5);
+                        requestLCDInterrupt(mmu);
                     }
                     //Console.WriteLine("Inside Changestat 2:" + mmu.STAT.ToString("x2"));
                     break;
@@ -103,21 +104,25 @@ namespace ProjectDMG {
                     mmu.STAT = mmu.bitClear(1, mmu.STAT);
                     mmu.STAT = mmu.bitClear(0, mmu.STAT);
                     if (mmu.isBit(3, mmu.STAT)) { // Bit 3 - Mode 0 H-Blank Interrupt     (1=Enable) (Read/Write)
-                        requestPPUInterrupt(3);
+                        requestLCDInterrupt(mmu);
                     }
                     break;
                 case 1: //VBLANK - Mode 1 (4560 cycles - 10 lines)
                     mmu.STAT = mmu.bitClear(1, mmu.STAT);
                     mmu.STAT = mmu.bitSet(0, mmu.STAT);
                     if (mmu.isBit(4, mmu.STAT)) { // Bit 4 - Mode 1 V-Blank Interrupt     (1=Enable) (Read/Write)
-                        requestPPUInterrupt(4);
+                        requestLCDInterrupt(mmu);
                     }
                     break;
             }
         }
 
-        private void requestPPUInterrupt(int v) {
-            //throw new NotImplementedException();
+        private void requestVBlankInterrupt(MMU mmu) {
+            mmu.IF |= 0x1;
+        }
+
+        private void requestLCDInterrupt(MMU mmu) {
+            mmu.IF |= 0x2;
         }
 
         private void drawScanLine(MMU mmu) {
@@ -225,7 +230,7 @@ namespace ProjectDMG {
         }
 
         private void renderSprites(MMU mmu) {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void RenderFrame(MMU mmu, PictureBox pictureBox) {
