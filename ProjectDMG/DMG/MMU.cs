@@ -96,7 +96,7 @@ namespace ProjectDMG {
             switch (addr) {                                              // General Memory Map 64KB
                 case ushort r when addr >= 0x0000 && addr <= 0x7FFF:     //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00) 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
                     Console.WriteLine("Warning: Tried to write to ROM space " + addr.ToString("x4") + " " + b.ToString("x2"));
-                    Console.ReadLine();
+                    //Console.ReadLine();
                     break;
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
                     VRAM[addr - 0x8000] = b;
@@ -124,7 +124,7 @@ namespace ProjectDMG {
                     //b = (byte)(addr == 0xFF44 ? 0 : b); //TODO handle other I/Os
                     if (addr == 0xFF02 && b == 0x81) {
                        Console.Write(Convert.ToChar(readByte(0xFF01)));
-                        Console.ReadKey();
+                       //Console.ReadLine();
                     }
                     IO[addr - 0xFF00] = b;
                     break;
@@ -163,7 +163,7 @@ namespace ProjectDMG {
         }
 
         public void loadGamePak() {
-            byte[] rom = File.ReadAllBytes("dr.gb");
+            byte[] rom = File.ReadAllBytes("03-op sp,hl.gb");
             Array.Copy(rom, 0, ROM, 0, rom.Length);
         }
 

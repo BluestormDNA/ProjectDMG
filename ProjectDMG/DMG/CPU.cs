@@ -29,7 +29,7 @@ namespace ProjectDMG {
         public int Exe(MMU mmu) {
 
             byte opcode = mmu.readByte(PC++);
-            debug(mmu, opcode);
+            //debug(mmu, opcode);
             cycles = 0;
                                                                                                                                  
             switch (opcode) {
@@ -126,7 +126,7 @@ namespace ProjectDMG {
                 case 0x2B: HL -= 1;                                        break; //DEC HL     1 4     ----
                 case 0x2C: L = INC(L);                                     break; //INC L      1 4     Z0H-
                 case 0x2D: L = DEC(L);                                     break; //DEC L      1 4     Z1H-
-                case 0x2E: L = mmu.readByte(PC); PC += 1; ;                break; //LD A,D8    2 8     ----
+                case 0x2E: L = mmu.readByte(PC); PC += 1; ;                break; //LD L,D8    2 8     ----
                 case 0x2F: A = (byte)~A; FlagN = true; FlagH = true;       break; //CPL	       1 4     -11-
 
                 case 0x30: JR(mmu, !FlagC);                                break; //JR NC R8   2 12/8  ----
@@ -912,8 +912,8 @@ namespace ProjectDMG {
                 PC = (ushort)(0x40 + (8 * b));
                 IME = false;
                 if(b != 0) {
-                    Console.WriteLine("CPU: INTERRUPT EXECUTED " + PC.ToString("x4"));
-                    Console.ReadLine();
+                   // Console.WriteLine("CPU: INTERRUPT EXECUTED " + PC.ToString("x4"));
+                   // Console.ReadLine();
                 }
 
             }
