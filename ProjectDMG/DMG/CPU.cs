@@ -29,9 +29,8 @@ namespace ProjectDMG {
         public int Exe(MMU mmu) {
 
             byte opcode = mmu.readByte(PC++);
-            cycles = 0;
-
             debug(mmu, opcode);
+            cycles = 0;
                                                                                                                                  
             switch (opcode) {
                 case 0x00:                                      break; //NOP        1 4     ----
@@ -357,7 +356,7 @@ namespace ProjectDMG {
 
                 case 0xF8: HL = (ushort)(SP + mmu.readByte(PC)); PC += 1; break; //LD HL,SP+R8 2 12    00HC <----- //TODO FALTAN FLAGS
                 case 0xF9: SP = HL;                         break; //LD SP,HL    1 8     ----
-                case 0xFA: A = mmu.readByte(PC); PC += 2;   break; //LD A,(A16)  3 16    ----
+                case 0xFA: A = mmu.readByte(mmu.readWord(PC)); PC += 2;   break; //LD A,(A16)  3 16    ----
                 case 0xFB: IME = true;                      break; //IME          1 4     ----
                 //case 0xFC:                                break; //Illegal Opcode
                 //case 0xFD:                                break; //Illegal Opcode
@@ -907,6 +906,19 @@ namespace ProjectDMG {
             PC = b;
         }
 
+        public void ExecuteInterrupt(MMU mmu, byte b) {
+            if (IME) {
+                PUSH(mmu, PC);
+                PC = (ushort)(0x40 + (8 * b));
+                IME = false;
+                if(b != 0) {
+                    Console.WriteLine("CPU: INTERRUPT EXECUTED " + PC.ToString("x4"));
+                    Console.ReadLine();
+                }
+
+            }
+        }
+
         private void PUSH(MMU mmu, ushort w) {// (SP - 1) < -PC.hi; (SP - 2) < -PC.lo
             SP -= 2;
             mmu.writeWord(SP, w);
@@ -957,8 +969,8 @@ namespace ProjectDMG {
 
         public int dev;
         private void debug(MMU mmu, byte opcode) {
-            dev++;
-            if (dev > 2240000)
+            dev += cycles;
+            if (dev >= 23869288) //0x100
                 Console.WriteLine("cycle" + dev + " " + (PC - 1).ToString("x4") + " " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
                     + " BC: " + B.ToString("x2") + "" + C.ToString("x2") + " DE: " + D.ToString("x2") + "" + E.ToString("x2") + " HL: " + H.ToString("x2") + "" + L.ToString("x2")
                     + " op " + opcode.ToString("x2") + " next16 " + mmu.readWord(PC).ToString("x4"));
