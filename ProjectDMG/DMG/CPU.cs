@@ -337,7 +337,7 @@ namespace ProjectDMG {
                 case 0xE7: RST(mmu, 0x20);                  break; //RST 4 20    1 16    ----
 
                 case 0xE8: ADDSP(mmu.readByte(PC)); PC += 1;break; //ADD SP,R8   2 16    00HC
-                case 0xE9: PC = mmu.readWord(HL);           break; //JP (HL)     1 4     ----
+                case 0xE9: PC = HL;           break; //JP (HL)     1 4     ----
                 case 0xEA: mmu.writeByte(mmu.readWord(PC), A); PC += 2;                     break; //LD (A16),A 3 16 ----
                 //case 0xEB:                                break; //Illegal Opcode
                 //case 0xEC:                                break; //Illegal Opcode
