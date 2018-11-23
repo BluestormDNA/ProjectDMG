@@ -29,7 +29,7 @@ namespace ProjectDMG {
         public int Exe(MMU mmu) {
 
             byte opcode = mmu.readByte(PC++);
-            debug(mmu, opcode);
+            //debug(mmu, opcode);
             cycles = 0;
                                                                                                                                  
             switch (opcode) {
@@ -336,8 +336,8 @@ namespace ProjectDMG {
                 case 0xE6: AND(mmu.readByte(PC)); PC += 1;  break; //AND D8      2 8     Z010
                 case 0xE7: RST(mmu, 0x20);                  break; //RST 4 20    1 16    ----
 
-                case 0xE8: ADDSP(mmu.readByte(PC)); PC += 1;break; //ADD SP,R8   2 16    00HC
-                case 0xE9: PC = HL;           break; //JP (HL)     1 4     ----
+                case 0xE8: SP = DADr8(SP, mmu); PC += 1;    break; //ADD SP,R8   2 16    00HC
+                case 0xE9: PC = HL;                         break; //JP (HL)     1 4     ----
                 case 0xEA: mmu.writeByte(mmu.readWord(PC), A); PC += 2;                     break; //LD (A16),A 3 16 ----
                 //case 0xEB:                                break; //Illegal Opcode
                 //case 0xEC:                                break; //Illegal Opcode
@@ -354,7 +354,7 @@ namespace ProjectDMG {
                 case 0xF6: OR(mmu.readByte(PC)); PC += 1;   break; //OR D8       2 8     Z000
                 case 0xF7: RST(mmu, 0x30);                  break; //RST 6 30    1 16    ----
 
-                case 0xF8: HL = (ushort)(SP + mmu.readByte(PC)); PC += 1; break; //LD HL,SP+R8 2 12    00HC <----- //TODO FALTAN FLAGS
+                case 0xF8: HL = DADr8(SP, mmu); PC += 1;    break; //LD HL,SP+R8 2 12    00HC
                 case 0xF9: SP = HL;                         break; //LD SP,HL    1 8     ----
                 case 0xFA: A = mmu.readByte(mmu.readWord(PC)); PC += 2;   break; //LD A,(A16)  3 16    ----
                 case 0xFB: IME = true;                      break; //IME          1 4     ----
@@ -747,13 +747,14 @@ namespace ProjectDMG {
             return result;
         }
 
-        private void ADDSP(byte b) {//00HC
-            int result = SP + b;
+        private ushort DADr8(ushort w, MMU mmu) {//00HC | warning r8 is signed!
+            sbyte b = (sbyte)mmu.readByte(PC);
+            int result = w + b;
             FlagZ = false;
             FlagN = false;
-            //SetFlagH(SP, b); <-- Special
+            SetFlagH((byte)w, (byte)b);
             SetFlagC(result);
-            SP = (ushort)result;
+            return (ushort)result;
         }
 
         private void JR(MMU mmu, bool flag) {
@@ -866,7 +867,7 @@ namespace ProjectDMG {
         private void DAD(ushort w) { //-0HC
             int result = HL + w;
             FlagN = false;
-            SetFlagH((byte)HL, (byte)w); //<--- //TODO this is probably wrong
+            SetFlagH(HL, w); //Special Flag H with word
             FlagC = result >> 16 != 0; //Special FlagC as short value involved
             HL = (ushort)result;
         }
@@ -951,6 +952,10 @@ namespace ProjectDMG {
             FlagH = ((b1 & 0xF) + (b2 & 0xF)) > 0xF;
         }
 
+        private void SetFlagH(ushort w1, ushort w2) {
+            FlagH = ((w1 & 0xFFF) + (w2 & 0xFFF)) > 0xFFF;
+        }
+
         private void SetFlagHCarry(byte b1, byte b2) {
             FlagH = ((b1 & 0xF) + (b2 & 0xF)) >= 0xF;
         }
@@ -971,10 +976,10 @@ namespace ProjectDMG {
         public int dev;
         private void debug(MMU mmu, byte opcode) {
             dev += cycles;
-            //if (dev >= 23440332) //0x100
+            if (dev >= 23570492) //0x100 23580492
                 Console.WriteLine("Cycle " + dev + " PC " + (PC - 1).ToString("x4") + " Stack: " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
                     + " BC: " + B.ToString("x2") + "" + C.ToString("x2") + " DE: " + D.ToString("x2") + "" + E.ToString("x2") + " HL: " + H.ToString("x2") + "" + L.ToString("x2")
-                    + " op " + opcode.ToString("x2") + " D16 " + mmu.readWord(PC).ToString("x4") + " LY: " + mmu.LY);
+                    + " op " + opcode.ToString("x2") + " D16 " + mmu.readWord(PC).ToString("x4") + " LY: " + mmu.LY.ToString("x2"));
         }
 
 
