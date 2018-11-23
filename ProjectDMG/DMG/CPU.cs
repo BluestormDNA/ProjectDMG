@@ -24,7 +24,7 @@ namespace ProjectDMG {
         private bool FlagC { get { return (F & 0x10) != 0; } set { F = value ? (byte)(F | 0x10) : (byte)(F & ~0x10); } }
 
         private bool IME;
-        private int cycles;
+        private int cycles = 8;
 
         public int Exe(MMU mmu) {
 
@@ -956,11 +956,12 @@ namespace ProjectDMG {
         }
 
         private void SetFlagHSub(byte b1, byte b2) {
-            FlagH = (b2 & 0xF) <= (b1 & 0xF);
+            FlagH = (b1 & 0xF) < (b2 & 0xF);
         }
 
         private void SetFlagHSubCarry(byte b1, byte b2) {
-            FlagH = (b2 & 0xF) < (b1 & 0xF);
+            int carry = FlagC ? 1 : 0;
+            FlagH = (b1 & 0xF) < ((b2 & 0xF) + carry);
         }
 
         private void warnUnsupportedOpcode(byte opcode) {
@@ -970,7 +971,7 @@ namespace ProjectDMG {
         public int dev;
         private void debug(MMU mmu, byte opcode) {
             dev += cycles;
-            if (dev >= 23869288) //0x100
+            //if (dev >= 23440332) //0x100
                 Console.WriteLine("cycle" + dev + " " + (PC - 1).ToString("x4") + " " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
                     + " BC: " + B.ToString("x2") + "" + C.ToString("x2") + " DE: " + D.ToString("x2") + "" + E.ToString("x2") + " HL: " + H.ToString("x2") + "" + L.ToString("x2")
                     + " op " + opcode.ToString("x2") + " next16 " + mmu.readWord(PC).ToString("x4"));

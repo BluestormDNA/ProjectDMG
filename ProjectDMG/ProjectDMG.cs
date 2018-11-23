@@ -51,7 +51,7 @@ namespace ProjectDMG {
                     }
 
                     ppu.RenderFrame(mmu, pictureBox);
-                    cyclesThisUpdate = 0;
+                    cyclesThisUpdate -= Constants.CYCLES_PER_UPDATE;
                     start = DateTime.Now;
                 }
 

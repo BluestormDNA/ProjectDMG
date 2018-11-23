@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 
 namespace ProjectDMG {
     public class MMU {
-        
+
+        private string gamePak = "05-op rp.gb";
+
         //BootRom
         private byte[] BOOT_ROM = new byte[0x100];
         //Memory Banks
@@ -163,7 +165,7 @@ namespace ProjectDMG {
         }
 
         public void loadGamePak() {
-            byte[] rom = File.ReadAllBytes("03-op sp,hl.gb");
+            byte[] rom = File.ReadAllBytes(gamePak);
             Array.Copy(rom, 0, ROM, 0, rom.Length);
         }
 
