@@ -29,7 +29,7 @@ namespace ProjectDMG {
         public int Exe(MMU mmu) {
 
             byte opcode = mmu.readByte(PC++);
-            //debug(mmu, opcode);
+            debug(mmu, opcode);
             cycles = 0;
                                                                                                                                  
             switch (opcode) {
@@ -972,9 +972,9 @@ namespace ProjectDMG {
         private void debug(MMU mmu, byte opcode) {
             dev += cycles;
             //if (dev >= 23440332) //0x100
-                Console.WriteLine("cycle" + dev + " " + (PC - 1).ToString("x4") + " " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
+                Console.WriteLine("Cycle " + dev + " PC " + (PC - 1).ToString("x4") + " Stack: " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
                     + " BC: " + B.ToString("x2") + "" + C.ToString("x2") + " DE: " + D.ToString("x2") + "" + E.ToString("x2") + " HL: " + H.ToString("x2") + "" + L.ToString("x2")
-                    + " op " + opcode.ToString("x2") + " next16 " + mmu.readWord(PC).ToString("x4"));
+                    + " op " + opcode.ToString("x2") + " D16 " + mmu.readWord(PC).ToString("x4") + " LY: " + mmu.LY);
         }
 
 
