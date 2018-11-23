@@ -13,7 +13,7 @@ namespace ProjectDMG {
 
         private byte A, B, C, D, E, F, H, L;
 
-        private ushort AF { get { return combineRegs(A, F); } set { A = (byte)(value >> 8); F = (byte)value; } }
+        private ushort AF { get { return combineRegs(A, F); } set { A = (byte)(value >> 8); F = (byte)(value & 0xF0); } }
         private ushort BC { get { return combineRegs(B, C); } set { B = (byte)(value >> 8); C = (byte)value; } }
         private ushort DE { get { return combineRegs(D, E); } set { D = (byte)(value >> 8); E = (byte)value; } }
         private ushort HL { get { return combineRegs(H, L); } set { H = (byte)(value >> 8); L = (byte)value; } }
@@ -923,15 +923,12 @@ namespace ProjectDMG {
         private void PUSH(MMU mmu, ushort w) {// (SP - 1) < -PC.hi; (SP - 2) < -PC.lo
             SP -= 2;
             mmu.writeWord(SP, w);
-            //Console.WriteLine("stack PUSH " + w.ToString("x4"));
-            //Console.WriteLine("whats on mem: " + mmu.readWord(SP).ToString("x4"));
-            //Console.WriteLine("stack PUSH = " + d16.ToString("x4") + " SP = " + SP.ToString("x4") + " value" + BitConverter.ToUInt16(memory, SP).ToString("x4"));
+            //Console.WriteLine("stack PUSH " + w.ToString("x4") + " reading: " + mmu.readWord(SP).ToString("x4"));
         }
 
         private ushort POP(MMU mmu) {
             ushort ret = mmu.readWord(SP);
-            //ushort ret = combineRegs(memory[SP + 1], memory[SP]);
-            //Console.WriteLine("stack POP = " + ret.ToString("x4") + " SP = " + SP.ToString("x4") + " value" + mmu.readWord(SP).ToString("x4"));
+            //Console.WriteLine("stack POP = " + ret.ToString("x4") + " SP = " + SP.ToString("x4") + " reading: " + mmu.readWord(SP).ToString("x4"));
             SP += 2;
             return ret;
         }

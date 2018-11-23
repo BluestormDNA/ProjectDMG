@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ProjectDMG {
     public class MMU {
 
-        private string gamePak = "05-op rp.gb";
+        private string gamePak = "01-special.gb";
 
         //BootRom
         private byte[] BOOT_ROM = new byte[0x100];
