@@ -7,8 +7,19 @@ using System.Threading.Tasks;
 
 namespace ProjectDMG {
     public class MMU {
+        private static readonly string t1 = "01-special.gb";
+        private static readonly string t2 = "02-interrupts.gb";
+        private static readonly string t3 = "03-op sp,hl.gb";
+        private static readonly string t4 = "04-op r,imm.gb";
+        private static readonly string t5 = "05-op rp.gb";
+        private static readonly string t6 = "06-ld r,r.gb";
+        private static readonly string t7 = "07-jr,jp,call,ret,rst.gb";
+        private static readonly string t8 = "08-misc instrs.gb";
+        private static readonly string t9 = "09-op r,r.gb";
+        private static readonly string t10 = "10-bit ops.gb";
+        private static readonly string t11 = "11-op a,(hl).gb";
 
-        private string gamePak = "01-special.gb";
+        private string gamePak = t11;
 
         //BootRom
         private byte[] BOOT_ROM = new byte[0x100];
