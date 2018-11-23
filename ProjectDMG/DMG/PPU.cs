@@ -81,6 +81,16 @@ namespace ProjectDMG {
                         break;
                 }
 
+                //handle coincidence Flag //TODO REWRITE?
+                if(mmu.LY == mmu.LYC) {
+                    mmu.STAT = mmu.bitSet(2, mmu.STAT);
+                    if(mmu.isBit(6, mmu.STAT)) {
+                        mmu.requestInterrupt(LCD_INTERRUPT);
+                    }
+                } else {
+                    mmu.STAT = mmu.bitClear(2, mmu.STAT);
+                }
+
             } else { //LCD Disabled
                 //Console.WriteLine("LCD DISABLED");
                 scanlineCounter = 0;
