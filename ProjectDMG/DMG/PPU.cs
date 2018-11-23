@@ -37,7 +37,7 @@ namespace ProjectDMG {
                     case 2: //Accessing OAM - Mode 2 (80 cycles)
                         if (scanlineCounter >= OAM_CYCLES) {
                             changeSTATMode(3, mmu);
-                            scanlineCounter = 0;
+                            scanlineCounter -= OAM_CYCLES;
                             //Console.WriteLine("Update PPU INSIDE OAM");
                         }
                         break;
@@ -45,7 +45,7 @@ namespace ProjectDMG {
                         if (scanlineCounter >= VRAM_CYCLES) {
                             changeSTATMode(0, mmu);
                             drawScanLine(mmu);
-                            scanlineCounter = 0;
+                            scanlineCounter -= VRAM_CYCLES;
                             //Console.WriteLine("Update PPU INSIDE VRAM");
                         }
                         break;
@@ -55,7 +55,7 @@ namespace ProjectDMG {
                             //mmu.debugIO();
 
                             mmu.LY++;
-                            scanlineCounter = 0;
+                            scanlineCounter -= HBLANK_CYCLES;
 
                             if (mmu.LY == SCREEN_HEIGHT) { //check if we arrived Vblank
                                 changeSTATMode(1, mmu);
@@ -69,7 +69,7 @@ namespace ProjectDMG {
                     case 1: //VBLANK - Mode 1 (4560 cycles - 10 lines)
                         if (scanlineCounter >= SCANLINE_CYCLES) {
                             mmu.LY++;
-                            scanlineCounter = 0;
+                            scanlineCounter -= SCANLINE_CYCLES;
 
                             //Console.WriteLine("Update PPU INSIDE VBLANK");
 
@@ -86,6 +86,7 @@ namespace ProjectDMG {
                 scanlineCounter = 0;
                 mmu.LY = 0;
                 mmu.STAT = (byte)(mmu.STAT & ~0b11111100);
+                mmu.STAT = (byte)(mmu.STAT | 0x2); //Forces Mode 2 OAM Start
             }
         }
 
