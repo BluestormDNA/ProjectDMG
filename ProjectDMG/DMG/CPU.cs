@@ -327,9 +327,9 @@ namespace ProjectDMG {
                 case 0xDE: SBC(mmu.readByte(PC)); PC += 1;  break; //SBC A,A8    2 8     Z1HC
                 case 0xDF: RST(mmu, 0x18);                  break; //RST 3 18    1 16    ----
 
-                case 0xE0: mmu.writeByte(combineRegs(0xFF, mmu.readByte(PC)), A); PC += 1;  break; //LDH (A8),A 2 12 ----
+                case 0xE0: mmu.writeByte((ushort)(0xFF00 + mmu.readByte(PC)), A); PC += 1;  break; //LDH (A8),A 2 12 ----
                 case 0xE1: HL = POP(mmu);                   break; //POP HL      1 12    ----
-                case 0xE2: mmu.writeByte(combineRegs(0xFF, mmu.readByte(C)), A);   break; //LD (C),A   1 8  ----
+                case 0xE2: mmu.writeByte((ushort)(0xFF00 + C), A);   break; //LD (C),A   1 8  ----
                 //case 0xE3:                                break; //Illegal Opcode
                 //case 0xE4:                                break; //Illegal Opcode
                 case 0xE5: PUSH(mmu, HL);                   break; //PUSH HL     1 16    ----
@@ -434,14 +434,14 @@ namespace ProjectDMG {
                 case 0x36: mmu.writeByte(HL, SWAP(mmu.readByte(HL)));   break; //SWAP (HL) 2   8   Z00C
                 case 0x37: A = SWAP(A);                                 break; //SWAP B    2   8   Z00C
                                                                           
-                case 0x38: B = SRL(B);                                  break; //SRL B    2   8   Z00C
-                case 0x39: C = SRL(C);                                  break; //SRL C    2   8   Z00C
-                case 0x3A: D = SRL(D);                                  break; //SRL D    2   8   Z00C
-                case 0x3B: E = SRL(E);                                  break; //SRL E    2   8   Z00C
-                case 0x3C: H = SRL(H);                                  break; //SRL H    2   8   Z00C
-                case 0x3D: L = SRL(L);                                  break; //SRL L    2   8   Z00C
-                case 0x3E: mmu.writeByte(HL, SRL(mmu.readByte(HL)));    break; //SRL (HL) 2   8   Z00C
-                case 0x3F: A = SRL(A);                                  break; //SRL B    2   8   Z00C
+                case 0x38: B = SRL(B);                                  break; //SRL B    2   8   Z000
+                case 0x39: C = SRL(C);                                  break; //SRL C    2   8   Z000
+                case 0x3A: D = SRL(D);                                  break; //SRL D    2   8   Z000
+                case 0x3B: E = SRL(E);                                  break; //SRL E    2   8   Z000
+                case 0x3C: H = SRL(H);                                  break; //SRL H    2   8   Z000
+                case 0x3D: L = SRL(L);                                  break; //SRL L    2   8   Z000
+                case 0x3E: mmu.writeByte(HL, SRL(mmu.readByte(HL)));    break; //SRL (HL) 2   8   Z000
+                case 0x3F: A = SRL(A);                                  break; //SRL B    2   8   Z000
 
                 case 0x40: BIT(0x1, B);                                 break; //BIT B    2   8   Z01-
                 case 0x41: BIT(0x1, C);                                 break; //BIT C    2   8   Z01-
@@ -687,8 +687,13 @@ namespace ProjectDMG {
             return result;
         }
 
-        private byte SWAP(byte b) {//Z00C
-            return (byte)(b & 0xF0 >> 4 | b & 0x0F << 4);
+        private byte SWAP(byte b) {//Z000
+            byte result = (byte)((b & 0xF0) >> 4 | (b & 0x0F) << 4);
+            SetFlagZ(result);
+            FlagN = false;
+            FlagH = false;
+            FlagC = false;
+            return result;
         }
 
         private byte SRA(byte b) {//Z00C
@@ -905,7 +910,7 @@ namespace ProjectDMG {
         }
 
         private void RST(MMU mmu, byte b) {
-            PUSH(mmu, (ushort)(PC + 2));
+            PUSH(mmu, PC);
             PC = b;
         }
 
