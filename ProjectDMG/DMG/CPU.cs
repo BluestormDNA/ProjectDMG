@@ -99,25 +99,16 @@ namespace ProjectDMG {
                 case 0x25: H = DEC(H);                          break; //DEC H       1 8    Z1H-
                 case 0x26: H = mmu.readByte(PC); PC += 1; ;     break; //LD H,D8     2 8    ----
 
-                case 0x27: //DAA    1 4 Z-0C <------------- //TODO PENDING REWRITE
-                    int daa = A;
-                    if ((daa & 0x0F) > 0x9 || FlagH) {
-                        //FlagH = (((daa & 0x0F) + 0x06) & 0xF0) != 0;
-                        daa += 0x06;
-                        if ((daa & 0xFF00) != 0) {
-                            FlagC = true;
-                        }
+                case 0x27: //DAA    1 4 Z-0C
+                    if (FlagN) { // sub
+                        if (FlagC) { A -= 0x60; }
+                        if (FlagH) { A -= 0x6; }
+                    } else { // add
+                        if (FlagC || (A > 0x99)) { A += 0x60; FlagC = true; }
+                        if (FlagH || (A & 0x0F) > 0x9) { A += 0x6; }
                     }
-
-                    if ((daa & 0xF0) > 0x90 || FlagC) {
-                        daa += 0x60;
-                        if ((daa & 0xFF00) != 0) {
-                            FlagC = true;
-                        }
-                    }
-                    SetFlagZ((byte)daa);
+                    SetFlagZ(A);
                     FlagH = false;
-                    A = (byte)daa;
                     break;
 
                 case 0x28: JR(mmu, FlagZ);                                 break; //JR Z R8    2 12/8  ----
