@@ -19,7 +19,7 @@ namespace ProjectDMG {
         private static readonly string t10 = "10-bit ops.gb";
         private static readonly string t11 = "11-op a,(hl).gb";
 
-        private string gamePak = t9;
+        private string gamePak = t11;
 
         //BootRom
         private byte[] BOOT_ROM = new byte[0x100];
@@ -43,8 +43,8 @@ namespace ProjectDMG {
         public byte TIMA { get { return readByte(0xFF05); } set { writeByte(0xFF05, value); } } //FF05 - TIMA - Timer counter (R/W)
         public byte TMA { get { return readByte(0xFF06); } set { writeByte(0xFF06, value); } } //FF06 - TMA - Timer Modulo (R/W)
         public byte TAC { get { return readByte(0xFF07); } set { writeByte(0xFF07, value); } } //FF07 - TAC - Timer Control (R/W)
-        public bool TAC_ENABLED { get { return (TAC & 0x4) != 0; } } // Check if bit 2 is 1
-        public byte TAC_FREQ { get { return (byte)(TAC & 0x3); } } // returns bits 0 and 1
+        public bool TAC_ENABLED { get { return (TAC & 0x4) != 0; } } // Check if byte 2 is 1
+        public byte TAC_FREQ { get { return (byte)(TAC & 0x3); } } // returns byte 0 and 1
 
         //Interrupt IO Flags
         //Bit 0: V-Blank Interrupt Enable(INT 40h)  (1=Enable)
@@ -93,7 +93,7 @@ namespace ProjectDMG {
                 case ushort r when addr >= 0xFE00 && addr <= 0xFE9F:    // FE00-FE9F Sprite Attribute Table(OAM)
                     return OAM[addr - 0xFE00];
                 case ushort r when addr >= 0xFEA0 && addr <= 0xFEFF:    // FEA0-FEFF Not Usable
-                    return 0xFF;
+                    return 0;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
                     return IO[addr - 0xFF00];
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
@@ -135,14 +135,6 @@ namespace ProjectDMG {
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
                     //b = (byte)(addr == 0xFF04 ? 0 : b); //TODO handle other I/Os
                     //b = (byte)(addr == 0xFF44 ? 0 : b); //TODO handle other I/Os
-                    if(addr == 0xFF42) {
-                        Console.WriteLine("SCY: " + b.ToString("x2"));
-                        //Console.ReadLine();
-                    }
-                    if(addr == 0xFF01) {
-                        Console.WriteLine("0xFF01 Write: " + Convert.ToChar(b));
-                        //Console.ReadLine();
-                    }
                     if (addr == 0xFF02 && b == 0x81) {
                        Console.Write(Convert.ToChar(readByte(0xFF01)));
                        //Console.ReadLine();

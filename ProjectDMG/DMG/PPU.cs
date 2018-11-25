@@ -61,7 +61,6 @@ namespace ProjectDMG {
                                 changeSTATMode(1, mmu);
                                 mmu.requestInterrupt(VBLANK_INTERRUPT);
                                 //we should draw frame here
-                                //RenderFrame(mmu, pictureBox);
                             } else { //not arrived yet so return to 2
                                 changeSTATMode(2, mmu);
                             }
@@ -82,7 +81,6 @@ namespace ProjectDMG {
                         break;
                 }
 
-                /*
                 //handle coincidence Flag //TODO REWRITE?
                 if(mmu.LY == mmu.LYC) {
                     mmu.STAT = mmu.bitSet(2, mmu.STAT);
@@ -92,7 +90,6 @@ namespace ProjectDMG {
                 } else {
                     mmu.STAT = mmu.bitClear(2, mmu.STAT);
                 }
-                */
 
             } else { //LCD Disabled
                 //Console.WriteLine("LCD DISABLED");
@@ -153,7 +150,7 @@ namespace ProjectDMG {
                 int x = p + mmu.SCX;
 
                 ushort tileCol = (ushort)(x / 8);
-                ushort tileAdress = (ushort)(getTileMapAdress(mmu) + ((tileRow + tileCol) & 0x3FF));
+                ushort tileAdress = (ushort)(getTileMapAdress(mmu) + tileRow + tileCol);
 
                 ushort tileLoc;
                 if (isSignedAdress(mmu)) {
