@@ -336,7 +336,7 @@ namespace ProjectDMG {
                 case 0xE6: AND(mmu.readByte(PC)); PC += 1;  break; //AND D8      2 8     Z010
                 case 0xE7: RST(mmu, 0x20);                  break; //RST 4 20    1 16    ----
 
-                case 0xE8: SP = DADr8(SP, mmu); PC += 1;    break; //ADD SP,R8   2 16    00HC
+                case 0xE8: SP = DADr8(SP, mmu);             break; //ADD SP,R8   2 16    00HC
                 case 0xE9: PC = HL;                         break; //JP (HL)     1 4     ----
                 case 0xEA: mmu.writeByte(mmu.readWord(PC), A); PC += 2;                     break; //LD (A16),A 3 16 ----
                 //case 0xEB:                                break; //Illegal Opcode
@@ -354,7 +354,7 @@ namespace ProjectDMG {
                 case 0xF6: OR(mmu.readByte(PC)); PC += 1;   break; //OR D8       2 8     Z000
                 case 0xF7: RST(mmu, 0x30);                  break; //RST 6 30    1 16    ----
 
-                case 0xF8: HL = DADr8(SP, mmu); PC += 1;    break; //LD HL,SP+R8 2 12    00HC
+                case 0xF8: HL = DADr8(SP, mmu);             break; //LD HL,SP+R8 2 12    00HC
                 case 0xF9: SP = HL;                         break; //LD SP,HL    1 8     ----
                 case 0xFA: A = mmu.readByte(mmu.readWord(PC)); PC += 2;   break; //LD A,(A16)  3 16    ----
                 case 0xFB: IME = true;                      break; //IME          1 4     ----
@@ -753,13 +753,12 @@ namespace ProjectDMG {
         }
 
         private ushort DADr8(ushort w, MMU mmu) {//00HC | warning r8 is signed!
-            sbyte b = (sbyte)mmu.readByte(PC);
-            int result = w + b;
+            byte b = mmu.readByte(PC++);
             FlagZ = false;
             FlagN = false;
-            SetFlagH((byte)w, (byte)b);
-            SetFlagC(result);
-            return (ushort)result;
+            SetFlagH((byte)w, b);
+            SetFlagC((byte)w + b);
+            return (ushort)(w + (sbyte)b);
         }
 
         private void JR(MMU mmu, bool flag) {
