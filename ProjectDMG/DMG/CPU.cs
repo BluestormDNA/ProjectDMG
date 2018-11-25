@@ -197,7 +197,7 @@ namespace ProjectDMG {
                 case 0x6A: L = D;                 break; //LD L,D   	1 4    ----
                 case 0x6B: L = E;                 break; //LD L,E   	1 4    ----
                 case 0x6C: L = H;                 break; //LD L,H   	1 4    ----
-                case 0x6D: /*L=L;*/               break; //LD L,L	    1 4    ----
+                case 0x6D: /*L = L;*/             break; //LD L,L	    1 4    ----
                 case 0x6E: L = mmu.readByte(HL);  break; //LD L,(HL)	1 8    ----
                 case 0x6F: L = A;                 break; //LD L,A	    1 4    ----
                                                  
