@@ -150,7 +150,7 @@ namespace ProjectDMG {
                 int x = p + mmu.SCX;
 
                 ushort tileCol = (ushort)(x / 8);
-                ushort tileAdress = (ushort)(getTileMapAdress(mmu) + tileRow + tileCol);
+                ushort tileAdress = (ushort)(getTileMapAdress(mmu) + ((tileRow + tileCol) & 0x3FF));
 
                 ushort tileLoc;
                 if (isSignedAdress(mmu)) {
