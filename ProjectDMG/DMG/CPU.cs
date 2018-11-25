@@ -136,7 +136,7 @@ namespace ProjectDMG {
                 case 0x34: mmu.writeByte(HL, INC(mmu.readByte(HL)));       break; //INC (HL)   1 12    Z0H-
                 case 0x35: mmu.writeByte(HL, DEC(mmu.readByte(HL)));       break; //DEC (HL)   1 12    Z1H-
                 case 0x36: mmu.writeByte(HL, mmu.readByte(PC)); PC += 1;   break; //LD (HL),D8 2 12    ----
-                case 0x37: F = 0; FlagC = true;                            break; //SCF	       1 4     0001
+                case 0x37: FlagC = true; FlagN = false; FlagH = false;     break; //SCF	       1 4     -001
 
                 case 0x38: JR(mmu, FlagC);                                 break; //JR C R8    2 12/8  ----
                 case 0x39: DAD(SP);                                        break; //ADD HL,SP  1 8     -0HC
@@ -808,9 +808,9 @@ namespace ProjectDMG {
             int result = A + b + carry;
             SetFlagZ(result);
             FlagN = false;
-            //if (FlagC)
+            if (FlagC)
                 SetFlagHCarry(A, b);
-            //else SetFlagH(A, b);
+            else SetFlagH(A, b);
             SetFlagC(result);
             A = (byte)result;
         }
@@ -829,9 +829,9 @@ namespace ProjectDMG {
             int result = A - b - carry;
             SetFlagZ(result);
             FlagN = true;
-            //if (FlagC)
+            if (FlagC)
                 SetFlagHSubCarry(A, b);
-            //else SetFlagHSub(A, b);
+            else SetFlagHSub(A, b);
             SetFlagC(result);
             A = (byte)result;
         }
