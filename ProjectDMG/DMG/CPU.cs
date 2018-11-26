@@ -654,7 +654,7 @@ namespace ProjectDMG {
 
                 default: warnUnsupportedOpcode(opcode); break;
             }
-            cycles += Cycles.CBValue(opcode);
+            cycles += Cycles.CBValue[opcode];
         }
 
         private byte SET(byte b, byte reg) {//----
