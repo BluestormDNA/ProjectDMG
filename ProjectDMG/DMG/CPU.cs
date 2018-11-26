@@ -24,6 +24,8 @@ namespace ProjectDMG {
         private bool FlagC { get { return (F & 0x10) != 0; } set { F = value ? (byte)(F | 0x10) : (byte)(F & ~0x10); } }
 
         private bool IME;
+        //private bool IMEEnabler;
+        private bool HALTED;
         private int cycles = 8;
 
         public int Exe(MMU mmu) {
@@ -31,7 +33,7 @@ namespace ProjectDMG {
             byte opcode = mmu.readByte(PC++);
             //debug(mmu, opcode);
             cycles = 0;
-                                                                                                                                 
+
             switch (opcode) {
                 case 0x00:                                      break; //NOP        1 4     ----
                 case 0x01: BC = mmu.readWord(PC); PC += 2;      break; //LD BC,D16  3 12    ----
@@ -198,7 +200,7 @@ namespace ProjectDMG {
                 case 0x73: mmu.writeByte(HL, E);  break; //LD (HL),E	1 8	   ----
                 case 0x74: mmu.writeByte(HL, H);  break; //LD (HL),H	1 8	   ----
                 case 0x75: mmu.writeByte(HL, L);  break; //LD (HL),L	1 8	   ----
-                case 0x76: PC--;                  break; //HLT	        1 4    ----
+                case 0x76: HALTED = true; PC--;   break; //HLT	        1 4    ----
                 case 0x77: mmu.writeByte(HL, A);  break; //LD (HL),A	1 8    ----
                                                  
                 case 0x78: A = B;                 break; //LD A,B	    1 4    ----
@@ -348,7 +350,7 @@ namespace ProjectDMG {
                 case 0xF8: HL = DADr8(SP, mmu);             break; //LD HL,SP+R8 2 12    00HC
                 case 0xF9: SP = HL;                         break; //LD SP,HL    1 8     ----
                 case 0xFA: A = mmu.readByte(mmu.readWord(PC)); PC += 2;   break; //LD A,(A16)  3 16    ----
-                case 0xFB: IME = true;                      break; //IME          1 4     ----
+                case 0xFB: IME = true;                      break; //IE          1 4     ----
                 //case 0xFC:                                break; //Illegal Opcode
                 //case 0xFD:                                break; //Illegal Opcode
                 case 0xFE: CP(mmu.readByte(PC)); PC += 1;   break; //CP D8       2 8     Z1HC
@@ -909,12 +911,17 @@ namespace ProjectDMG {
                 PUSH(mmu, PC);
                 PC = (ushort)(0x40 + (8 * b));
                 IME = false;
-                if(b != 0) {
-                   // Console.WriteLine("CPU: INTERRUPT EXECUTED " + PC.ToString("x4"));
-                   // Console.ReadLine();
-                }
-
+                mmu.IF = mmu.bitClear(b, mmu.IF);
+                //if (b != 0) {
+                //  Console.WriteLine("CPU: INTERRUPT EXECUTED " + PC.ToString("x4"));
+                //  Console.ReadLine();
+                //}
+            } else if(!IME && HALTED) {
+                PC++;
+                HALTED = false;
             }
+
+
         }
 
         private void PUSH(MMU mmu, ushort w) {// (SP - 1) < -PC.hi; (SP - 2) < -PC.lo
@@ -970,7 +977,7 @@ namespace ProjectDMG {
         public int dev;
         private void debug(MMU mmu, byte opcode) {
             dev += cycles;
-            if (dev >= 23500000) //0x100 23580492
+            if (dev >= 25229880) //0x100 23580492
                 Console.WriteLine("Cycle " + dev + " PC " + (PC - 1).ToString("x4") + " Stack: " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
                     + " BC: " + B.ToString("x2") + "" + C.ToString("x2") + " DE: " + D.ToString("x2") + "" + E.ToString("x2") + " HL: " + H.ToString("x2") + "" + L.ToString("x2")
                     + " op " + opcode.ToString("x2") + " D16 " + mmu.readWord(PC).ToString("x4") + " LY: " + mmu.LY.ToString("x2"));
