@@ -66,7 +66,6 @@ namespace ProjectDMG {
                         //Console.WriteLine("Exe Interrupt " +i);
                         //Console.ReadLine();
                         cpu.ExecuteInterrupt(mmu, i);
-                        mmu.bitClear(i, mmu.IF);
                     }
                 }
             }

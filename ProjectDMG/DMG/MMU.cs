@@ -108,7 +108,7 @@ namespace ProjectDMG {
         public void writeByte(ushort addr, byte b) {
             switch (addr) {                                              // General Memory Map 64KB
                 case ushort r when addr >= 0x0000 && addr <= 0x7FFF:     //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00) 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
-                    Console.WriteLine("Warning: Tried to write to ROM space " + addr.ToString("x4") + " " + b.ToString("x2"));
+                    //Console.WriteLine("Warning: Tried to write to ROM space " + addr.ToString("x4") + " " + b.ToString("x2"));
                     //Console.ReadLine();
                     break;
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
@@ -130,7 +130,7 @@ namespace ProjectDMG {
                     OAM[addr - 0xFE00] = b;
                     break;
                 case ushort r when addr >= 0xFEA0 && addr <= 0xFEFF:    // FEA0-FEFF Not Usable
-                    Console.WriteLine("Warning: Tried to write to NOT USABLE space");
+                    //Console.WriteLine("Warning: Tried to write to NOT USABLE space");
                     break;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
                     //b = (byte)(addr == 0xFF04 ? 0 : b); //TODO handle other I/Os
