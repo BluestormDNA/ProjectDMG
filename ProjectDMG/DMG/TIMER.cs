@@ -3,9 +3,9 @@
 namespace ProjectDMG {
     public class TIMER {
 
-        private const int DMG_DIV_FREQ = 16384;             //16384Hz
+        private const int DMG_DIV_FREQ = 256;             //16384Hz
         private const int CGB_DIV_FREQ = DMG_DIV_FREQ * 2;  //32768Hz
-        private static readonly int[] TAC_FREQ = { 4096, 262144, 65536, 16384 };
+        private static readonly int[] TAC_FREQ = { 1024, 16, 64, 256 };
         //00: CPU Clock / 1024 (DMG, CGB:   4096 Hz, SGB:   ~4194 Hz)
         //01: CPU Clock / 16   (DMG, CGB: 262144 Hz, SGB: ~268400 Hz)
         //10: CPU Clock / 64   (DMG, CGB:  65536 Hz, SGB:  ~67110 Hz)
@@ -16,22 +16,22 @@ namespace ProjectDMG {
         private int timerCounter;
 
         public void update(int cycles, MMU mmu) {
-            divCounter += cycles;
-            timerCounter += cycles;
-            handleDivider(mmu);
-            handleTimer(mmu);
+            handleDivider(cycles, mmu);
+            handleTimer(cycles, mmu);
         }
 
-        private void handleDivider(MMU mmu) {
-            if(divCounter >= DMG_DIV_FREQ) { //TODO is this 256? CPU SPEED / DIV RATE?
+        private void handleDivider(int cycles, MMU mmu) {
+            divCounter += cycles;
+            if (divCounter >= DMG_DIV_FREQ) { //TODO is this 256? CPU SPEED / DIV RATE?
                 mmu.DIV++;
                 divCounter -= DMG_DIV_FREQ;
             }
         }
 
-        private void handleTimer(MMU mmu) {
+        private void handleTimer(int cycles, MMU mmu) {
             if (mmu.TAC_ENABLED) {
-                if(timerCounter >= TAC_FREQ[mmu.TAC_FREQ]) {
+                timerCounter += cycles;
+                if (timerCounter >= TAC_FREQ[mmu.TAC_FREQ]) {
                     mmu.TIMA++;
                     timerCounter -= TAC_FREQ[mmu.TAC_FREQ];
                 }
