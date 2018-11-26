@@ -19,7 +19,7 @@ namespace ProjectDMG {
         private static readonly string t10 = "10-bit ops.gb";
         private static readonly string t11 = "11-op a,(hl).gb";
 
-        private string gamePak = t11;
+        private string gamePak = "instr_timing.gb";
 
         //BootRom
         private byte[] BOOT_ROM = new byte[0x100];
@@ -39,7 +39,7 @@ namespace ProjectDMG {
         public byte BR { get { return readByte(0xFF50); } set { writeByte(0xFF50, value); } }
 
         //Timer IO Regs
-        public byte DIV { get { return readByte(0xFF04); } set { writeByte(0xFF04, value); } } //FF04 - DIV - Divider Register (R/W) bypasses special div case: on write always 0
+        public byte DIV { get { return readByte(0xFF04); } set { IO[0x04] = value; } } //FF04 - DIV - Divider Register (R/W) bypasses on write always 0
         public byte TIMA { get { return readByte(0xFF05); } set { writeByte(0xFF05, value); } } //FF05 - TIMA - Timer counter (R/W)
         public byte TMA { get { return readByte(0xFF06); } set { writeByte(0xFF06, value); } } //FF06 - TMA - Timer Modulo (R/W)
         public byte TAC { get { return readByte(0xFF07); } set { writeByte(0xFF07, value); } } //FF07 - TAC - Timer Control (R/W)
@@ -61,7 +61,7 @@ namespace ProjectDMG {
 
         public byte SCY { get { return readByte(0xFF42); } }//FF42 - SCY - Scroll Y (R/W)
         public byte SCX { get { return readByte(0xFF43); } }//FF43 - SCX - Scroll X (R/W)
-        public byte LY { get { return readByte(0xFF44); } set { writeByte(0xFF44, value); } }//FF44 - LY - LCDC Y-Coordinate (R)
+        public byte LY { get { return readByte(0xFF44); } set { IO[0x44] = value; } }//FF44 - LY - LCDC Y-Coordinate (R) bypasses on write always 0
         public byte LYC { get { return readByte(0xFF45); } }//FF45 - LYC - LY Compare(R/W)
         public byte WY { get { return readByte(0xFF4A); } }//FF4A - WY - Window Y Position (R/W)
         public byte WX { get { return readByte(0xFF4B); } }//FF4B - WX - Window X Position minus 7 (R/W)
@@ -71,6 +71,10 @@ namespace ProjectDMG {
         public byte OBP1 { get { return readByte(0xFF49); } }//FF49 - OBP1 - Object Palette 1 Data (R/W) - Non CGB Mode Only
 
         public byte DMA { get { return readByte(0xFF46); } }//FF46 - DMA - DMA Transfer and Start Address (R/W)
+
+        public MMU() {
+            IO[0] = 0xFF; //JOYP 
+        }
 
         public byte readByte(ushort addr) {
             switch (addr) {                                             // General Memory Map 64KB
@@ -133,9 +137,9 @@ namespace ProjectDMG {
                     //Console.WriteLine("Warning: Tried to write to NOT USABLE space");
                     break;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
-                    //b = (byte)(addr == 0xFF04 ? 0 : b); //TODO handle other I/Os
-                    //b = (byte)(addr == 0xFF44 ? 0 : b); //TODO handle other I/Os
-                    if (addr == 0xFF02 && b == 0x81) {
+                    b = (byte)(addr == 0xFF04 ? 0 : b); //DIV on write = 0
+                    b = (byte)(addr == 0xFF44 ? 0 : b); //LY on write = 0
+                    if (addr == 0xFF02 && b == 0x81) { //Temp Serial Link output for debug
                        Console.Write(Convert.ToChar(readByte(0xFF01)));
                        //Console.ReadLine();
                     }
