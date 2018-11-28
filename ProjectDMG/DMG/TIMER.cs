@@ -3,8 +3,8 @@
 namespace ProjectDMG {
     public class TIMER {
 
-        private const int DMG_DIV_FREQ = 256;             //16384Hz
-        private const int CGB_DIV_FREQ = DMG_DIV_FREQ * 2;  //32768Hz
+        private const int DMG_DIV_FREQ = 256;              //16384Hz
+        private const int CGB_DIV_FREQ = DMG_DIV_FREQ * 2; //32768Hz
         private static readonly int[] TAC_FREQ = { 1024, 16, 64, 256 };
         //00: CPU Clock / 1024 (DMG, CGB:   4096 Hz, SGB:   ~4194 Hz)
         //01: CPU Clock / 16   (DMG, CGB: 262144 Hz, SGB: ~268400 Hz)
@@ -22,7 +22,7 @@ namespace ProjectDMG {
 
         private void handleDivider(int cycles, MMU mmu) {
             divCounter += cycles;
-            while (divCounter >= DMG_DIV_FREQ) { //TODO is this 256? CPU SPEED / DIV RATE?
+            while (divCounter >= DMG_DIV_FREQ) {
                 mmu.DIV++;
                 divCounter -= DMG_DIV_FREQ;
             }
