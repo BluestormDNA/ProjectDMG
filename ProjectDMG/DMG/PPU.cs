@@ -30,7 +30,6 @@ namespace ProjectDMG {
         public void update(int cycles, MMU mmu) {
             scanlineCounter += cycles;
             byte currentMode = (byte)(mmu.STAT & 0b00000011); //Current Mode Mask
-            //Console.WriteLine("Update PPU STAT:" + mmu.STAT.ToString("x2") + " " + currentMode) ;
 
             if (isLCDEnabled(mmu)) {
                 switch (currentMode) {
@@ -38,7 +37,6 @@ namespace ProjectDMG {
                         if (scanlineCounter >= OAM_CYCLES) {
                             changeSTATMode(3, mmu);
                             scanlineCounter -= OAM_CYCLES;
-                            //Console.WriteLine("Update PPU INSIDE OAM");
                         }
                         break;
                     case 3: //Accessing VRAM - Mode 3 (172 cycles) Total M2+M3 = 252 Cycles
@@ -46,14 +44,10 @@ namespace ProjectDMG {
                             changeSTATMode(0, mmu);
                             drawScanLine(mmu);
                             scanlineCounter -= VRAM_CYCLES;
-                            //Console.WriteLine("Update PPU INSIDE VRAM");
                         }
                         break;
                     case 0: //HBLANK - Mode 0 (204 cycles) Total M2+M3+M0 = 456 Cycles
                         if (scanlineCounter >= HBLANK_CYCLES) {
-                            //Console.WriteLine("Update PPU INSIDE HBLANK" + mmu.LY);
-                            //mmu.debugIO();
-
                             mmu.LY++;
                             scanlineCounter -= HBLANK_CYCLES;
 
@@ -108,7 +102,6 @@ namespace ProjectDMG {
                     if (mmu.isBit(5, mmu.STAT)) { // Bit 5 - Mode 2 OAM Interrupt         (1=Enable) (Read/Write)
                         mmu.requestInterrupt(LCD_INTERRUPT);
                     }
-                    //Console.WriteLine("Inside Changestat 2:" + mmu.STAT.ToString("x2"));
                     break;
                 case 3: //Accessing VRAM - Mode 3 (172 cycles) Total M2+M3 = 252 Cycles
                     mmu.STAT = mmu.bitSet(1, mmu.STAT);
@@ -132,10 +125,10 @@ namespace ProjectDMG {
         }
 
         private void drawScanLine(MMU mmu) {
-            if (mmu.isBit(0, mmu.LCDC)) {
+            if (mmu.isBit(0, mmu.LCDC)) { //Bit 0 - BG Display  (0=Off, 1=On)
                 renderTiles(mmu);
             }
-            if (mmu.isBit(1, mmu.LCDC)) {
+            if (mmu.isBit(1, mmu.LCDC)) { //Bit 1 - OBJ (Sprite) Display Enable
                 renderSprites(mmu);
             }
         }
@@ -143,7 +136,6 @@ namespace ProjectDMG {
         private void renderTiles(MMU mmu) {
             //TODO WINDOW
             int y = mmu.SCY + mmu.LY;
-            //Console.WriteLine("LY: " + mmu.LY + " SCY: " + mmu.SCY);
             ushort tileRow = (ushort)(y / 8 * 32);
 
             for (int p = 0; p < H_PIXELS; p++) {
@@ -251,7 +243,13 @@ namespace ProjectDMG {
         }
 
         private bool isLCDEnabled(MMU mmu) {
+            //Bit 7 - LCD Display Enable
             return mmu.isBit(7, mmu.LCDC);
+        }
+
+        private bool is8x16Sprite(MMU mmu) {
+            //Bit 2 - OBJ (Sprite) Size (0=8x8, 1=8x16)
+            return mmu.isBit(2, mmu.LCDC);
         }
     }
 }

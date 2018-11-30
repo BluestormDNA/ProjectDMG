@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DMG\Cycles.cs" />
+    <Compile Include="DMG\JOYPAD.cs" />
     <Compile Include="DMG\MMU.cs" />
     <Compile Include="DMG\CPU.cs" />
     <Compile Include="GUI\Form.cs">

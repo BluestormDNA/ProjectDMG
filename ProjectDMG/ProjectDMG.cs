@@ -10,11 +10,12 @@ using System.Windows.Forms;
 namespace ProjectDMG {
     public class ProjectDMG {
 
-        PictureBox pictureBox;
-        CPU cpu;
-        MMU mmu;
-        PPU ppu;
-        TIMER timer;
+        private PictureBox pictureBox;
+        private CPU cpu;
+        private MMU mmu;
+        private PPU ppu;
+        private TIMER timer;
+        public JOYPAD joypad;
 
         public ProjectDMG(PictureBox pictureBox) {
 
@@ -23,6 +24,7 @@ namespace ProjectDMG {
             mmu = new MMU();
             ppu = new PPU(pictureBox);
             timer = new TIMER();
+            joypad = new JOYPAD();
 
             mmu.loadGamePak();
             mmu.loadBootRom();
@@ -47,6 +49,7 @@ namespace ProjectDMG {
 
                         timer.update(cpuCycles, mmu);
                         ppu.update(cpuCycles, mmu);
+                        joypad.update(mmu);
                         handleInterrupts(mmu, cpu);
                     }
 
@@ -69,6 +72,10 @@ namespace ProjectDMG {
                     }
                 }
             }
+        }
+
+        public void handleInput() {
+
         }
     }
 

@@ -19,7 +19,7 @@ namespace ProjectDMG {
         private static readonly string t10 = "10-bit ops.gb";
         private static readonly string t11 = "11-op a,(hl).gb";
 
-        private string gamePak = "instr_timing.gb";
+        private string gamePak = "tetris.gb";
 
         //BootRom
         private byte[] BOOT_ROM = new byte[0x100];
@@ -70,11 +70,9 @@ namespace ProjectDMG {
         public byte OBP0 { get { return readByte(0xFF48); } }//FF48 - OBP0 - Object Palette 0 Data (R/W) - Non CGB Mode Only
         public byte OBP1 { get { return readByte(0xFF49); } }//FF49 - OBP1 - Object Palette 1 Data (R/W) - Non CGB Mode Only
 
-        public byte DMA { get { return readByte(0xFF46); } }//FF46 - DMA - DMA Transfer and Start Address (R/W)
+        //public byte DMA { get { return readByte(0xFF46); } }//FF46 - DMA - DMA Transfer and Start Address (R/W)
 
-        public MMU() {
-            IO[0] = 0xFF; //JOYP 
-        }
+        public byte JOYP { get { return readByte(0xFF00); } set { writeByte(0xFF00, value); } }//FF00 - JOYP
 
         public byte readByte(ushort addr) {
             switch (addr) {                                             // General Memory Map 64KB
@@ -97,15 +95,18 @@ namespace ProjectDMG {
                 case ushort r when addr >= 0xFE00 && addr <= 0xFE9F:    // FE00-FE9F Sprite Attribute Table(OAM)
                     return OAM[addr - 0xFE00];
                 case ushort r when addr >= 0xFEA0 && addr <= 0xFEFF:    // FEA0-FEFF Not Usable
-                    return 0;
+                    return 0xFF;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
+                    //if(addr - 0xFF00 == 0) {
+                    //    return 0x3F;
+                    //}
                     return IO[addr - 0xFF00];
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
                     return HRAM[addr - 0xFF80];
                 case 0xFFFF:                                            // FFFF Interrupt Enable Register
                     return IE;
                 default:
-                    return 0;
+                    return 0xFF;
             }
         }
 
@@ -137,8 +138,11 @@ namespace ProjectDMG {
                     //Console.WriteLine("Warning: Tried to write to NOT USABLE space");
                     break;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
-                    b = (byte)(addr == 0xFF04 ? 0 : b); //DIV on write = 0
-                    b = (byte)(addr == 0xFF44 ? 0 : b); //LY on write = 0
+                    switch (addr) {
+                        case 0xFF04:                //DIV on write = 0
+                        case 0xFF44: b = 0; break;  //LY on write = 0
+                        case 0xFF46: DMA(b); break;
+                    }
                     if (addr == 0xFF02 && b == 0x81) { //Temp Serial Link output for debug
                        Console.Write(Convert.ToChar(readByte(0xFF01)));
                        //Console.ReadLine();
@@ -151,6 +155,17 @@ namespace ProjectDMG {
                 case 0xFFFF: // FFFF Interrupt Enable Register.
                     IE = b;
                     break;
+            }
+        }
+
+        private void DMA(byte b) {
+            ushort addr = (ushort)(b << 8);
+            //Console.WriteLine("DMA addr " + addr.ToString("x4"));
+            //Console.ReadLine();
+            for (byte i = 0; i < OAM.Length; i++) {
+                OAM[i] = readByte((ushort)(addr + i));
+                //Console.WriteLine("copied "+ ((ushort)(addr + i)).ToString("x4") + " " + readByte((ushort)(addr + i)).ToString("x2"));
+                //Console.WriteLine("oam " + OAM[i]);
             }
         }
 

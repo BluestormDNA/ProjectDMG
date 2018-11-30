@@ -10,12 +10,23 @@ using System.Windows.Forms;
 
 namespace ProjectDMG {
     public partial class Form : System.Windows.Forms.Form {
+
+        ProjectDMG dmg;
+
         public Form() {
             InitializeComponent();
         }
 
-        private void Form1_Load(object sender, EventArgs e) {
-            ProjectDMG dmg = new ProjectDMG(pictureBox);
+        private void Form_Load(object sender, EventArgs e) {
+            dmg = new ProjectDMG(pictureBox);
+        }
+
+        private void Key_Down(object sender, KeyEventArgs e) {
+            dmg.joypad.handleKeyDown(e);
+        }
+
+        private void Key_Up(object sender, KeyEventArgs e) {
+            dmg.joypad.handleKeyUp(e);
         }
     }
 }
