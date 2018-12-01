@@ -76,9 +76,9 @@ namespace ProjectDMG {
                 }
 
                 //handle coincidence Flag //TODO REWRITE?
-                if(mmu.LY == mmu.LYC) {
+                if (mmu.LY == mmu.LYC) {
                     mmu.STAT = mmu.bitSet(2, mmu.STAT);
-                    if(mmu.isBit(6, mmu.STAT)) {
+                    if (mmu.isBit(6, mmu.STAT)) {
                         mmu.requestInterrupt(LCD_INTERRUPT);
                     }
                 } else {
@@ -156,7 +156,7 @@ namespace ProjectDMG {
                 byte b1 = mmu.readByte((ushort)(tileLoc + tileLine));
                 byte b2 = mmu.readByte((ushort)(tileLoc + tileLine + 1));
 
-                byte colorBit = (byte)((x % 8 - 7) * -1);
+                byte colorBit = (byte)(7 - x % 8); //inversed
 
                 byte colorId = GetColorIdBits(colorBit, b1, b2);
                 byte colorIdThroughtPalette = GetColorIdThroughtPalette(mmu, colorId);
@@ -228,7 +228,32 @@ namespace ProjectDMG {
         }
 
         private void renderSprites(MMU mmu) {
-            //throw new NotImplementedException();
+            //40 sprites
+            for (int i = 0; i < 0x9F; i += 4) { //0x9F OAM Size, 4 bytes per Sprite:
+                //Byte0 - Y Position
+                byte y = (byte)(mmu.readByte((ushort)(0xFF00 + i)) - 16); //needs 16 offset
+                //Byte1 - X Position
+                byte x = (byte)(mmu.readByte((ushort)(0xFF00 + i + 1)) - 8); //needs 8 offset
+                //Byte2 - Tile/Pattern Number
+                byte tile = mmu.readByte((ushort)(0xFF00 + i + 2));
+                //Byte3 - Attributes/Flags:
+                byte attr = mmu.readByte((ushort)(0xFF00 + i + 3));
+
+                if ((mmu.LY >= y) && (mmu.LY < (y + 8))) {
+                    byte palette = mmu.isBit(4, attr) ? mmu.OBP1 : mmu.OBP0; //Bit4   Palette number  **Non CGB Mode Only** (0=OBP0, 1=OBP1)
+
+                    byte tileRow;
+                    if(isYFlipped(attr, mmu)) {
+                        tileRow = (byte)(7 - mmu.LY - y);
+                    } else {
+                        tileRow = (byte)(mmu.LY - y);
+                    }
+
+                    for (int p = 0; p < 8; p++) {
+                        //
+                    }
+                }
+            }
         }
 
         public void RenderFrame(MMU mmu, PictureBox pictureBox) {
@@ -247,9 +272,19 @@ namespace ProjectDMG {
             return mmu.isBit(7, mmu.LCDC);
         }
 
-        private bool is8x16Sprite(MMU mmu) {
+        private int spriteSize(MMU mmu) {
             //Bit 2 - OBJ (Sprite) Size (0=8x8, 1=8x16)
-            return mmu.isBit(2, mmu.LCDC);
+            return mmu.isBit(2, mmu.LCDC) ? 16 : 8;
+        }
+
+        private bool isXFlipped(byte attr, MMU mmu) {
+            //Bit5   X flip(0 = Normal, 1 = Horizontally mirrored)
+            return mmu.isBit(5, attr);
+        }
+
+        private bool isYFlipped(byte attr, MMU mmu) {
+            //Bit6 Y flip(0 = Normal, 1 = Vertically mirrored)
+            return mmu.isBit(6, attr);
         }
     }
 }
