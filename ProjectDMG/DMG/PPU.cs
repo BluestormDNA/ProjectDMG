@@ -159,7 +159,7 @@ namespace ProjectDMG {
                 byte colorBit = (byte)(7 - x % 8); //inversed
 
                 byte colorId = GetColorIdBits(colorBit, b1, b2);
-                byte colorIdThroughtPalette = GetColorIdThroughtPalette(mmu, colorId);
+                byte colorIdThroughtPalette = GetColorIdThroughtPalette(mmu.BGP, colorId);
                 Color color = GetColor(colorIdThroughtPalette);
 
                 bmp.SetPixel(p, mmu.LY, color);
@@ -188,16 +188,16 @@ namespace ProjectDMG {
             return (byte)(hi << 1 | lo);
         }
 
-        public byte GetColorIdThroughtPalette(MMU mmu, byte colorId) {
+        public byte GetColorIdThroughtPalette(byte palette, byte colorId) {
             switch (colorId) {
                 case 0b00:
-                    return (byte)(mmu.BGP & 0b00000011);
+                    return (byte)(palette & 0b00000011);
                 case 0b01:
-                    return (byte)((mmu.BGP & 0b00001100) >> 2);
+                    return (byte)((palette & 0b00001100) >> 2);
                 case 0b10:
-                    return (byte)((mmu.BGP & 0b00110000) >> 4);
+                    return (byte)((palette & 0b00110000) >> 4);
                 case 0b11:
-                    return (byte)((mmu.BGP & 0b11000000) >> 6);
+                    return (byte)((palette & 0b11000000) >> 6);
                 default: //Just in case something is wrong
                     return 0xFF;
             }
@@ -242,18 +242,31 @@ namespace ProjectDMG {
                 if ((mmu.LY >= y) && (mmu.LY < (y + 8))) {
                     byte palette = mmu.isBit(4, attr) ? mmu.OBP1 : mmu.OBP0; //Bit4   Palette number  **Non CGB Mode Only** (0=OBP0, 1=OBP1)
 
-                    byte tileRow;
-                    if(isYFlipped(attr, mmu)) {
-                        tileRow = (byte)(7 - mmu.LY - y);
-                    } else {
-                        tileRow = (byte)(mmu.LY - y);
-                    }
+                    byte tileRow = isYFlipped(attr, mmu) ? (byte)(7 - mmu.LY - y) : (byte)(mmu.LY - y);
 
-                    for (int p = 0; p < 8; p++) {
-                        //
+                    ushort tileddress = (ushort)(0x8000 + (tile * 16) + tileRow);
+                    byte b1 = mmu.readByte(tileddress);
+                    byte b2 = mmu.readByte((ushort)(tileddress + 1));
+
+                    for (byte p = 0; p < 8; p++) {
+                        byte colorId = GetColorIdBits(p, b1, b2);
+                        byte colorIdThroughtPalette = GetColorIdThroughtPalette(palette, colorId);
+
+                        if ((x + p) >= 0 && (x + p) < SCREEN_WIDTH 
+                            && !isTransparent(colorIdThroughtPalette) && isAboveBG(attr)) {
+
+                            Color color = GetColor(colorIdThroughtPalette);
+                            bmp.SetPixel(x + p, y, color);
+                        }
+
                     }
                 }
             }
+        }
+
+        private bool isAboveBG(byte attr) {
+            //Bit7 OBJ-to - BG Priority(0 = OBJ Above BG, 1 = OBJ Behind BG color 1 - 3)
+            return attr >> 7 == 0;
         }
 
         public void RenderFrame(MMU mmu, PictureBox pictureBox) {
@@ -285,6 +298,10 @@ namespace ProjectDMG {
         private bool isYFlipped(byte attr, MMU mmu) {
             //Bit6 Y flip(0 = Normal, 1 = Vertically mirrored)
             return mmu.isBit(6, attr);
+        }
+
+        private bool isTransparent(byte b) {
+            return b == 0;
         }
     }
 }
