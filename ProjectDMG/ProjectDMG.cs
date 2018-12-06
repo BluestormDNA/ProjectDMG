@@ -66,8 +66,6 @@ namespace ProjectDMG {
             if (mmu.IF != 0) {
                 for(byte i = 0; i < 5; i++) {
                     if(mmu.isBit(i, mmu.IE) && mmu.isBit(i, mmu.IF)) {
-                        //Console.WriteLine("Exe Interrupt " +i);
-                        //Console.ReadLine();
                         cpu.ExecuteInterrupt(mmu, i);
                     }
                 }
