@@ -1,44 +1,40 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ProjectDMG {
     public class JOYPAD {
 
-        private byte PAD_BYTE_MASK = 0x10;
-        private byte BUTTON_BYTE_MASK = 0x20;
+        private readonly byte PAD_MASK = 0x10;
+        private readonly byte BUTTON_MASK = 0x20;
         private byte pad = 0xF;
         private byte buttons = 0xF;
 
         internal void handleKeyDown(KeyEventArgs e) {
             byte b = GetKeyBit(e);
-            if ((b & PAD_BYTE_MASK) == PAD_BYTE_MASK) {
+            if ((b & PAD_MASK) == PAD_MASK) {
                 pad = (byte)(pad & ~(b & 0xF));
-            } else if((b & BUTTON_BYTE_MASK) == BUTTON_BYTE_MASK) {
+            } else if((b & BUTTON_MASK) == BUTTON_MASK) {
                 buttons = (byte)(buttons & ~(b & 0xF));
             }
-            Console.WriteLine("Down: Buttons = " + buttons.ToString("x2") + " Pad = " + pad.ToString("x2"));
+            Console.WriteLine("Down: B:" + buttons.ToString("x2") + " P:" + pad.ToString("x2"));
         }
 
         internal void handleKeyUp(KeyEventArgs e) {
             byte b = GetKeyBit(e);
-            if ((b & PAD_BYTE_MASK) == PAD_BYTE_MASK) {
+            if ((b & PAD_MASK) == PAD_MASK) {
                 pad = (byte)(pad | (b & 0xF));
-            } else if ((b & BUTTON_BYTE_MASK) == BUTTON_BYTE_MASK) {
+            } else if ((b & BUTTON_MASK) == BUTTON_MASK) {
                 buttons = (byte)(buttons | (b & 0xF));
             }
-            Console.WriteLine("UP: Buttons = " + buttons.ToString("x2") + " Pad = " + pad.ToString("x2"));
+            Console.WriteLine("UP: B:" + buttons.ToString("x2") + " P:" + pad.ToString("x2"));
         }
 
         public void update(MMU mmu) {
             if(!mmu.isBit(4, mmu.JOYP)) {
-                mmu.JOYP = (byte)(0xCF & pad);
+                mmu.JOYP = (byte)(0xE0 | pad);
             }
             if (!mmu.isBit(5, mmu.JOYP)) {
-                mmu.JOYP = (byte)(0xCF & buttons);
+                mmu.JOYP = (byte)(0xD0 | buttons);
             }
         }
 
