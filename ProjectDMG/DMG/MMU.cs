@@ -7,23 +7,13 @@ using System.Threading.Tasks;
 
 namespace ProjectDMG {
     public class MMU {
-        private static readonly string t1 = "01-special.gb";
-        private static readonly string t2 = "02-interrupts.gb";
-        private static readonly string t3 = "03-op sp,hl.gb";
-        private static readonly string t4 = "04-op r,imm.gb";
-        private static readonly string t5 = "05-op rp.gb";
-        private static readonly string t6 = "06-ld r,r.gb";
-        private static readonly string t7 = "07-jr,jp,call,ret,rst.gb";
-        private static readonly string t8 = "08-misc instrs.gb";
-        private static readonly string t9 = "09-op r,r.gb";
-        private static readonly string t10 = "10-bit ops.gb";
-        private static readonly string t11 = "11-op a,(hl).gb";
 
-        private string gamePak = "dr.gb";
+        //GamePak
+        private string gamePak = "tetris.gb";
 
         //BootRom
         private byte[] BOOT_ROM = new byte[0x100];
-        //Memory Banks
+        //DMG Memory Map
         private byte[] ROM = new byte[0x8000];
         private byte[] VRAM = new byte[0x2000];
         private byte[] ERAM = new byte[0x2000];
@@ -97,9 +87,6 @@ namespace ProjectDMG {
                 case ushort r when addr >= 0xFEA0 && addr <= 0xFEFF:    // FEA0-FEFF Not Usable
                     return 0xFF;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
-                    //if(addr - 0xFF00 == 0) {
-                    //    return 0x3F;
-                    //}
                     return IO[addr - 0xFF00];
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
                     return HRAM[addr - 0xFF80];
@@ -113,8 +100,6 @@ namespace ProjectDMG {
         public void writeByte(ushort addr, byte b) {
             switch (addr) {                                              // General Memory Map 64KB
                 case ushort r when addr >= 0x0000 && addr <= 0x7FFF:     //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00) 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
-                    //Console.WriteLine("Warning: Tried to write to ROM space " + addr.ToString("x4") + " " + b.ToString("x2"));
-                    //Console.ReadLine();
                     break;
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
                     VRAM[addr - 0x8000] = b;
@@ -160,12 +145,8 @@ namespace ProjectDMG {
 
         private void DMA(byte b) {
             ushort addr = (ushort)(b << 8);
-            //Console.WriteLine("DMA addr " + addr.ToString("x4"));
-            //Console.ReadLine();
             for (byte i = 0; i < OAM.Length; i++) {
                 OAM[i] = readByte((ushort)(addr + i));
-                //Console.WriteLine("copied "+ ((ushort)(addr + i)).ToString("x4") + " " + readByte((ushort)(addr + i)).ToString("x2"));
-                //Console.WriteLine("oam " + OAM[i]);
             }
         }
 
@@ -204,17 +185,6 @@ namespace ProjectDMG {
             Array.Copy(rom, 0, BOOT_ROM, 0, rom.Length);
         }
 
-        public void debugIO() {
-            for (int i = 0; i < IO.Length; i++) {
-                Console.Write(IO[i].ToString("x2") + " ");
-            }
-        }
-
-        public void debugVRAM() {
-            for (int i = 0; i < VRAM.Length; i++) {
-                Console.Write(VRAM[i].ToString("x2") + " ");
-            }
-        }
     }
 }
 
