@@ -19,7 +19,7 @@ namespace ProjectDMG {
         private static readonly string t10 = "10-bit ops.gb";
         private static readonly string t11 = "11-op a,(hl).gb";
 
-        private string gamePak = "tetris.gb";
+        private string gamePak = "dr.gb";
 
         //BootRom
         private byte[] BOOT_ROM = new byte[0x100];
@@ -144,7 +144,7 @@ namespace ProjectDMG {
                         case 0xFF46: DMA(b); break;
                     }
                     if (addr == 0xFF02 && b == 0x81) { //Temp Serial Link output for debug
-                       Console.Write(Convert.ToChar(readByte(0xFF01)));
+                       //Console.Write(Convert.ToChar(readByte(0xFF01)));
                        //Console.ReadLine();
                     }
                     IO[addr - 0xFF00] = b;

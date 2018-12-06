@@ -4,8 +4,9 @@ using System.Windows.Forms;
 namespace ProjectDMG {
     public class JOYPAD {
 
-        private readonly byte PAD_MASK = 0x10;
-        private readonly byte BUTTON_MASK = 0x20;
+        private const int JOYPAD_INTERRUPT = 4;
+        private const byte PAD_MASK = 0x10;
+        private const byte BUTTON_MASK = 0x20;
         private byte pad = 0xF;
         private byte buttons = 0xF;
 
@@ -32,9 +33,11 @@ namespace ProjectDMG {
         public void update(MMU mmu) {
             if(!mmu.isBit(4, mmu.JOYP)) {
                 mmu.JOYP = (byte)(0xE0 | pad);
+                if(pad != 0xF) mmu.requestInterrupt(JOYPAD_INTERRUPT);
             }
             if (!mmu.isBit(5, mmu.JOYP)) {
                 mmu.JOYP = (byte)(0xD0 | buttons);
+                if (buttons != 0xF) mmu.requestInterrupt(JOYPAD_INTERRUPT);
             }
         }
 
