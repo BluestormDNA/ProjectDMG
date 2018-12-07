@@ -35,8 +35,8 @@ namespace ProjectDMG {
         }
 
         public void Exe() {
-            DateTime start = DateTime.Now;
-            DateTime elapsed = DateTime.Now;
+            DateTime start = DateTime.UtcNow;
+            DateTime elapsed = DateTime.UtcNow;
             int cpuCycles = 0;
             int cyclesThisUpdate = 0;
             while (true) {
@@ -55,10 +55,10 @@ namespace ProjectDMG {
 
                     ppu.RenderFrame(mmu, pictureBox);
                     cyclesThisUpdate -= Constants.CYCLES_PER_UPDATE;
-                    start = DateTime.Now;
+                    start = DateTime.UtcNow;
                 }
 
-                elapsed = DateTime.Now;
+                elapsed = DateTime.UtcNow;
             }
         }
 
@@ -72,9 +72,6 @@ namespace ProjectDMG {
             }
         }
 
-        public void handleInput() {
-
-        }
     }
 
 
