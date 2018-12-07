@@ -9,7 +9,7 @@ namespace ProjectDMG {
     public class MMU {
 
         //GamePak
-        private string gamePak = "tetris.gb";
+        private string gamePak = "g.gb";
 
         //BootRom
         private byte[] BOOT_ROM = new byte[0x100];
