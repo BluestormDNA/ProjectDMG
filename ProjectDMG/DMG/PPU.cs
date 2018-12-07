@@ -239,23 +239,22 @@ namespace ProjectDMG {
                 //Byte3 - Attributes/Flags:
                 byte attr = mmu.readByte((ushort)(0xFE00 + i + 3));
 
-                //Console.WriteLine("x: " + x.ToString("x2") + " y: " + y.ToString("x2") + " t: " + tile.ToString("x2") + " attr: " + attr.ToString("x2"));
-
-                if ((mmu.LY >= y) && (mmu.LY < (y + 8))) {
+                if ((mmu.LY >= y) && (mmu.LY < (y + spriteSize(mmu)))) {
                     byte palette = mmu.isBit(4, attr) ? mmu.OBP1 : mmu.OBP0; //Bit4   Palette number  **Non CGB Mode Only** (0=OBP0, 1=OBP1)
 
-                    byte tileRow = isYFlipped(attr, mmu) ? (byte)(7 - mmu.LY - y) : (byte)(mmu.LY - y);
+                    byte tileRow = isYFlipped(attr, mmu) ? (byte)(spriteSize(mmu) - mmu.LY - y) : (byte)(mmu.LY - y);
 
                     ushort tileddress = (ushort)(0x8000 + (tile * 16) + (tileRow * 2));
                     byte b1 = mmu.readByte(tileddress);
                     byte b2 = mmu.readByte((ushort)(tileddress + 1));
 
                     for (byte p = 0; p < 8; p++) {
-                        byte colorId = GetColorIdBits((byte)(7 - p), b1, b2);
+                        byte IdPos = isXFlipped(attr, mmu) ? p : (byte)(7 - p);
+                        byte colorId = GetColorIdBits(IdPos, b1, b2);
                         byte colorIdThroughtPalette = GetColorIdThroughtPalette(palette, colorId);
 
                         if ((x + p) >= 0 && (x + p) < SCREEN_WIDTH
-                            /*&& !isTransparent(colorIdThroughtPalette) && isAboveBG(attr)*/) {
+                            && !isTransparent(colorIdThroughtPalette) && isAboveBG(attr)) {
 
                             Color color = GetColor(colorIdThroughtPalette);
                             bmp.SetPixel(x + p, mmu.LY, color);
