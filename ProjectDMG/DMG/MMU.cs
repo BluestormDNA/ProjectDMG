@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProjectDMG.DMG.GamePak;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,14 +10,15 @@ namespace ProjectDMG {
     public class MMU {
 
         //GamePak
-        private string gamePak = "g.gb";
+        private string cartName = "tetris.gb";
+        private IGamePak gamePak;
 
         //BootRom
         private byte[] BOOT_ROM = new byte[0x100];
         //DMG Memory Map
-        private byte[] ROM = new byte[0x8000];
+        //private byte[] ROM = new byte[0x8000]; in GamePak
         private byte[] VRAM = new byte[0x2000];
-        private byte[] ERAM = new byte[0x2000];
+        //private byte[] ERAM = new byte[0x2000]; in GamePak
         private byte[] WRAM0 = new byte[0x1000];
         private byte[] WRAM1 = new byte[0x1000];
         private byte[] WRAM_MIRROR = new byte[0x1E00];
@@ -70,7 +72,7 @@ namespace ProjectDMG {
                     if (BR == 0 && addr < 0x100) {
                         return BOOT_ROM[addr];
                     } else {
-                        return ROM[addr];
+                        return gamePak.ReadByte(addr);
                     }
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
                     return VRAM[addr - 0x8000];
@@ -100,6 +102,7 @@ namespace ProjectDMG {
         public void writeByte(ushort addr, byte b) {
             switch (addr) {                                              // General Memory Map 64KB
                 case ushort r when addr >= 0x0000 && addr <= 0x7FFF:     //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00) 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
+                    gamePak.WriteByte(addr, b);
                     break;
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
                     VRAM[addr - 0x8000] = b;
@@ -143,13 +146,6 @@ namespace ProjectDMG {
             }
         }
 
-        private void DMA(byte b) {
-            ushort addr = (ushort)(b << 8);
-            for (byte i = 0; i < OAM.Length; i++) {
-                OAM[i] = readByte((ushort)(addr + i));
-            }
-        }
-
         public ushort readWord(ushort addr) {
             return (ushort)(readByte((ushort)(addr + 1)) << 8 | readByte(addr));
         }
@@ -175,9 +171,33 @@ namespace ProjectDMG {
             IF = bitSet(b, IF);
         }
 
+        private void DMA(byte b) {
+            ushort addr = (ushort)(b << 8);
+            for (byte i = 0; i < OAM.Length; i++) {
+                OAM[i] = readByte((ushort)(addr + i));
+            }
+        }
+
         public void loadGamePak() {
-            byte[] rom = File.ReadAllBytes(gamePak);
-            Array.Copy(rom, 0, ROM, 0, rom.Length);
+            byte[] rom = File.ReadAllBytes(cartName);
+            switch (rom[0x147]) {
+                case 0:
+                    gamePak = new MBC0();
+                    break;
+                case 1:
+                case 2:
+                case 3:
+                    Console.WriteLine("Unsupported MBC 1: " + rom[0x147]);
+                    break;
+                case 5:
+                case 6:
+                    Console.WriteLine("Unsupported MBC 2: " + rom[0x147]);
+                    break;
+                default:
+                    Console.WriteLine("Unsupported MBC: " + rom[0x147]);
+                    break;
+            }
+            gamePak.Init(rom);
         }
 
         public void loadBootRom() {
