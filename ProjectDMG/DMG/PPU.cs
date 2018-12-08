@@ -254,7 +254,7 @@ namespace ProjectDMG {
                         byte colorIdThroughtPalette = GetColorIdThroughtPalette(palette, colorId);
 
                         if ((x + p) >= 0 && (x + p) < SCREEN_WIDTH
-                            && !isTransparent(colorIdThroughtPalette) && isAboveBG(attr)) {
+                            && !isTransparent(colorId) && isAboveBG(attr)) {
 
                             Color color = GetColor(colorIdThroughtPalette);
                             bmp.SetPixel(x + p, mmu.LY, color);
