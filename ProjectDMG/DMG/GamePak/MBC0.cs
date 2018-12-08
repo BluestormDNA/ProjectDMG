@@ -11,8 +11,20 @@
             return ROM[addr];
         }
 
-        public void WriteByte(ushort addr, byte value) {
-            //ROM[addr] = value; //MBC0 should ignore writes
+        public byte ReadERAM(ushort addr) {
+            return 0xFF; //MBC0 dosn't have ERAM
+        }
+
+        public byte ReadROM(ushort addr) {
+            return ROM[addr];
+        }
+
+        public void WriteERAM(ushort addr, byte value) {
+            //MBC0 should ignore writes
+        }
+
+        public void WriteROM(ushort addr, byte value) {
+            //MBC0 should ignore writes
         }
     }
 }

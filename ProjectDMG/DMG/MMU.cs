@@ -72,12 +72,12 @@ namespace ProjectDMG {
                     if (BR == 0 && addr < 0x100) {
                         return BOOT_ROM[addr];
                     } else {
-                        return gamePak.ReadByte(addr);
+                        return gamePak.ReadROM(addr);
                     }
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
                     return VRAM[addr - 0x8000];
                 case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any)
-                    return ERAM[addr - 0xA000];
+                    return gamePak.ReadERAM(addr); //return ERAM[addr - 0xA000];
                 case ushort r when addr >= 0xC000 && addr <= 0xCFFF:    // C000-CFFF 4KB Work RAM Bank 0(WRAM)
                     return WRAM0[addr - 0xC000];
                 case ushort r when addr >= 0xD000 && addr <= 0xDFFF:    // D000-DFFF 4KB Work RAM Bank 1(WRAM)(switchable bank 1-7 in CGB Mode)
@@ -102,13 +102,13 @@ namespace ProjectDMG {
         public void writeByte(ushort addr, byte b) {
             switch (addr) {                                              // General Memory Map 64KB
                 case ushort r when addr >= 0x0000 && addr <= 0x7FFF:     //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00) 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
-                    gamePak.WriteByte(addr, b);
+                    gamePak.WriteROM(addr, b);
                     break;
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
                     VRAM[addr - 0x8000] = b;
                     break;
                 case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any) <br/>
-                    ERAM[addr - 0xA000] = b;
+                    gamePak.WriteERAM(addr, b); //ERAM[addr - 0xA000] = b;
                     break;
                 case ushort r when addr >= 0xC000 && addr <= 0xCFFF:    // C000-CFFF 4KB Work RAM Bank 0(WRAM) <br/>
                     WRAM0[addr - 0xC000] = b;
