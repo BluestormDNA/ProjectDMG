@@ -65,8 +65,6 @@ namespace ProjectDMG {
                             mmu.LY++;
                             scanlineCounter -= SCANLINE_CYCLES;
 
-                            //Console.WriteLine("Update PPU INSIDE VBLANK");
-
                             if (mmu.LY > SCREEN_VBLANK_HEIGHT) { //check end of VBLANK
                                 changeSTATMode(2, mmu);
                                 mmu.LY = 0;
@@ -135,14 +133,14 @@ namespace ProjectDMG {
 
         private void renderTiles(MMU mmu) {
             //TODO WINDOW
-            int y = mmu.SCY + mmu.LY;
+            byte y = (byte)(mmu.SCY + mmu.LY);
             ushort tileRow = (ushort)(y / 8 * 32);
 
             for (int p = 0; p < H_PIXELS; p++) {
-                int x = p + mmu.SCX;
+                byte x = (byte)(p + mmu.SCX);
 
                 ushort tileCol = (ushort)(x / 8);
-                ushort tileAdress = (ushort)(getTileMapAdress(mmu) + ((tileRow + tileCol) & 0x3FF));
+                ushort tileAdress = (ushort)(getTileMapAdress(mmu) + tileRow + tileCol);
 
                 ushort tileLoc;
                 if (isSignedAdress(mmu)) {
@@ -220,9 +218,8 @@ namespace ProjectDMG {
         private ushort getTileDataAdress(MMU mmu) {
             //Bit 4 - BG & Window Tile Data Select   (0=8800-97FF, 1=8000-8FFF)
             if (mmu.isBit(4, mmu.LCDC)) {
-                return 0x8000;
+                return 0x8000; //Signed Area
             } else {
-                //unsig
                 return 0x8800;
             }
         }
@@ -242,7 +239,7 @@ namespace ProjectDMG {
                 if ((mmu.LY >= y) && (mmu.LY < (y + spriteSize(mmu)))) {
                     byte palette = mmu.isBit(4, attr) ? mmu.OBP1 : mmu.OBP0; //Bit4   Palette number  **Non CGB Mode Only** (0=OBP0, 1=OBP1)
 
-                    byte tileRow = isYFlipped(attr, mmu) ? (byte)(spriteSize(mmu) - mmu.LY - y) : (byte)(mmu.LY - y);
+                    byte tileRow = isYFlipped(attr, mmu) ? (byte)((mmu.LY - y - 7) * -1) : (byte)(mmu.LY - y);
 
                     ushort tileddress = (ushort)(0x8000 + (tile * 16) + (tileRow * 2));
                     byte b1 = mmu.readByte(tileddress);
@@ -254,7 +251,8 @@ namespace ProjectDMG {
                         byte colorIdThroughtPalette = GetColorIdThroughtPalette(palette, colorId);
 
                         if ((x + p) >= 0 && (x + p) < SCREEN_WIDTH
-                            && !isTransparent(colorId) && isAboveBG(attr)) {
+                            && !isTransparent(colorId) && (isAboveBG(attr)
+                            || bmp.GetPixel(x + p, mmu.LY) == Color.White)) {
 
                             Color color = GetColor(colorIdThroughtPalette);
                             bmp.SetPixel(x + p, mmu.LY, color);
