@@ -10,7 +10,7 @@ namespace ProjectDMG {
     public class MMU {
 
         //GamePak
-        private string cartName = "tetris.gb";
+        private string cartName = "land.gb";
         private IGamePak gamePak;
 
         //BootRom
@@ -187,7 +187,7 @@ namespace ProjectDMG {
                 case 1:
                 case 2:
                 case 3:
-                    Console.WriteLine("Unsupported MBC 1: " + rom[0x147]);
+                    gamePak = new MBC1();
                     break;
                 case 5:
                 case 6:

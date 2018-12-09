@@ -52,6 +52,7 @@
     <Compile Include="DMG\Cycles.cs" />
     <Compile Include="DMG\GamePak\IGamePak.cs" />
     <Compile Include="DMG\GamePak\MBC0.cs" />
+    <Compile Include="DMG\GamePak\MBC1.cs" />
     <Compile Include="DMG\JOYPAD.cs" />
     <Compile Include="DMG\MMU.cs" />
     <Compile Include="DMG\CPU.cs" />
