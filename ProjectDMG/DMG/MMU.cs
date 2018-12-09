@@ -10,7 +10,7 @@ namespace ProjectDMG {
     public class MMU {
 
         //GamePak
-        private string cartName = "land.gb";
+        private string cartName = "cpu_instrs.gb";
         private IGamePak gamePak;
 
         //BootRom
@@ -65,6 +65,12 @@ namespace ProjectDMG {
         //public byte DMA { get { return readByte(0xFF46); } }//FF46 - DMA - DMA Transfer and Start Address (R/W)
 
         public byte JOYP { get { return readByte(0xFF00); } set { writeByte(0xFF00, value); } }//FF00 - JOYP
+
+        public MMU() {
+            //FF4D - KEY1 - CGB Mode Only - Prepare Speed Switch
+            //HardCoded to FF to identify DMG as 00 is GBC
+            IO[0x4D] = 0xFF;
+        }
 
         public byte readByte(ushort addr) {
             switch (addr) {                                             // General Memory Map 64KB
@@ -131,10 +137,10 @@ namespace ProjectDMG {
                         case 0xFF44: b = 0; break;  //LY on write = 0
                         case 0xFF46: DMA(b); break;
                     }
-                    if (addr == 0xFF02 && b == 0x81) { //Temp Serial Link output for debug
+                    //if (addr == 0xFF02 && b == 0x81) { //Temp Serial Link output for debug
                        //Console.Write(Convert.ToChar(readByte(0xFF01)));
                        //Console.ReadLine();
-                    }
+                    //}
                     IO[addr - 0xFF00] = b;
                     break;
                 case ushort r when addr >= 0xFF80 && addr <= 0xFFFE:    // FF80-FFFE High RAM(HRAM)
