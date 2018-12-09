@@ -1,7 +1,7 @@
 ﻿namespace ProjectDMG.DMG.GamePak {
     class MBC0 : IGamePak {
 
-        byte[] ROM;
+        private byte[] ROM;
 
         public void Init(byte[] ROM) {
             this.ROM = ROM;
