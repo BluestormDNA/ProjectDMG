@@ -1,16 +1,12 @@
 ﻿using ProjectDMG.DMG.GamePak;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ProjectDMG {
     public class MMU {
 
         //GamePak
-        private string cartName = "cpu_instrs.gb";
+        private string cartName = "kirby.gb";
         private IGamePak gamePak;
 
         //BootRom
