@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace ProjectDMG {
     public class JOYPAD {
@@ -17,7 +16,6 @@ namespace ProjectDMG {
             } else if((b & BUTTON_MASK) == BUTTON_MASK) {
                 buttons = (byte)(buttons & ~(b & 0xF));
             }
-            Console.WriteLine("Down: B:" + buttons.ToString("x2") + " P:" + pad.ToString("x2"));
         }
 
         internal void handleKeyUp(KeyEventArgs e) {
@@ -27,7 +25,6 @@ namespace ProjectDMG {
             } else if ((b & BUTTON_MASK) == BUTTON_MASK) {
                 buttons = (byte)(buttons | (b & 0xF));
             }
-            Console.WriteLine("UP: B:" + buttons.ToString("x2") + " P:" + pad.ToString("x2"));
         }
 
         public void update(MMU mmu) {
