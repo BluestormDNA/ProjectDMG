@@ -12,7 +12,6 @@ namespace ProjectDMG {
         private const int VRAM_CYCLES = 172;
         private const int HBLANK_CYCLES = 204;
         private const int SCANLINE_CYCLES = 456;
-        private const int H_PIXELS = 160;
 
         private const int VBLANK_INTERRUPT = 0;
         private const int LCD_INTERRUPT = 1;
@@ -123,20 +122,19 @@ namespace ProjectDMG {
         }
 
         private void drawScanLine(MMU mmu) {
-            if (mmu.isBit(0, mmu.LCDC)) { //Bit 0 - BG Display  (0=Off, 1=On)
-                renderTiles(mmu);
+            if (mmu.isBit(0, mmu.LCDC)) { //Bit 0 - BG Display (0=Off, 1=On)
+                renderBG(mmu);
             }
             if (mmu.isBit(1, mmu.LCDC)) { //Bit 1 - OBJ (Sprite) Display Enable
                 renderSprites(mmu);
             }
         }
 
-        private void renderTiles(MMU mmu) {
-            //TODO WINDOW
+        private void renderBG(MMU mmu) {
             byte y = (byte)(mmu.SCY + mmu.LY);
             ushort tileRow = (ushort)(y / 8 * 32);
 
-            for (int p = 0; p < H_PIXELS; p++) {
+            for (int p = 0; p < SCREEN_WIDTH; p++) {
                 byte x = (byte)(p + mmu.SCX);
 
                 ushort tileCol = (ushort)(x / 8);
@@ -225,8 +223,7 @@ namespace ProjectDMG {
         }
 
         private void renderSprites(MMU mmu) {
-            //40 sprites
-            for (int i = 0; i < 0x9F; i += 4) { //0x9F OAM Size, 4 bytes per Sprite:
+            for (int i = 0; i < 0x9F; i += 4) { //0x9F OAM Size, 40 Sprites x 4 bytes:
                 //Byte0 - Y Position
                 byte y = (byte)(mmu.readByte((ushort)(0xFE00 + i)) - 16); //needs 16 offset
                 //Byte1 - X Position
@@ -239,8 +236,8 @@ namespace ProjectDMG {
                 if ((mmu.LY >= y) && (mmu.LY < (y + spriteSize(mmu)))) {
                     byte palette = mmu.isBit(4, attr) ? mmu.OBP1 : mmu.OBP0; //Bit4   Palette number  **Non CGB Mode Only** (0=OBP0, 1=OBP1)
 
-                    byte tileRow = isYFlipped(attr, mmu) ? (byte)((mmu.LY - y - 7) * -1) : (byte)(mmu.LY - y);
-
+                    byte tileRow = isYFlipped(attr, mmu) ? (byte)(spriteSize(mmu) - 1 - (mmu.LY - y)) : (byte)(mmu.LY - y);
+                    //((mmu.LY - y - spriteSize(mmu) + 1) * -1)
                     ushort tileddress = (ushort)(0x8000 + (tile * 16) + (tileRow * 2));
                     byte b1 = mmu.readByte(tileddress);
                     byte b2 = mmu.readByte((ushort)(tileddress + 1));
@@ -301,6 +298,11 @@ namespace ProjectDMG {
 
         private bool isTransparent(byte b) {
             return b == 0;
+        }
+
+        private bool isWindowEnabled(MMU mmu) {
+            //Bit 5 - Window Display Enable (0=Off, 1=On)
+            return mmu.isBit(5, mmu.LCDC);
         }
     }
 }
