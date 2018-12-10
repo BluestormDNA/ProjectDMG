@@ -131,14 +131,15 @@ namespace ProjectDMG {
         }
 
         private void renderBG(MMU mmu) {
-            byte y = (byte)(mmu.SCY + mmu.LY);
+            byte y = isWindow(mmu) ? (byte)(mmu.LY - mmu.WY) : (byte)(mmu.SCY + mmu.LY);
             ushort tileRow = (ushort)(y / 8 * 32);
 
             for (int p = 0; p < SCREEN_WIDTH; p++) {
-                byte x = (byte)(p + mmu.SCX);
+                byte x = isWindow(mmu) && p >= mmu.WX - 7 ? (byte)(p - (mmu.WX - 7)) : (byte)(p + mmu.SCX); //WX needs -7 Offset
 
                 ushort tileCol = (ushort)(x / 8);
-                ushort tileAdress = (ushort)(getTileMapAdress(mmu) + tileRow + tileCol);
+                ushort tileMap = isWindow(mmu) ? getWindowTileMapAdress(mmu) : getBGTileMapAdress(mmu);
+                ushort tileAdress = (ushort)(tileMap + tileRow + tileCol);
 
                 ushort tileLoc;
                 if (isSignedAdress(mmu)) {
@@ -204,9 +205,18 @@ namespace ProjectDMG {
             return mmu.isBit(4, mmu.LCDC);
         }
 
-        private ushort getTileMapAdress(MMU mmu) {
+        private ushort getBGTileMapAdress(MMU mmu) {
             //Bit 3 - BG Tile Map Display Select     (0=9800-9BFF, 1=9C00-9FFF)
             if (mmu.isBit(3, mmu.LCDC)) {
+                return 0x9C00;
+            } else {
+                return 0x9800;
+            }
+        }
+
+        private ushort getWindowTileMapAdress(MMU mmu) {
+            //Bit 6 - Window Tile Map Display Select(0 = 9800 - 9BFF, 1 = 9C00 - 9FFF)
+            if (mmu.isBit(6, mmu.LCDC)) {
                 return 0x9C00;
             } else {
                 return 0x9800;
@@ -216,9 +226,9 @@ namespace ProjectDMG {
         private ushort getTileDataAdress(MMU mmu) {
             //Bit 4 - BG & Window Tile Data Select   (0=8800-97FF, 1=8000-8FFF)
             if (mmu.isBit(4, mmu.LCDC)) {
-                return 0x8000; //Signed Area
+                return 0x8000;
             } else {
-                return 0x8800;
+                return 0x8800; //Signed Area
             }
         }
 
@@ -304,9 +314,9 @@ namespace ProjectDMG {
             return b == 0;
         }
 
-        private bool isWindowEnabled(MMU mmu) {
+        private bool isWindow(MMU mmu) {
             //Bit 5 - Window Display Enable (0=Off, 1=On)
-            return mmu.isBit(5, mmu.LCDC);
+            return mmu.isBit(5, mmu.LCDC) && mmu.WY <= mmu.LY;
         }
     }
 }
