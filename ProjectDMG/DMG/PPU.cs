@@ -247,17 +247,21 @@ namespace ProjectDMG {
                         byte colorId = GetColorIdBits(IdPos, b1, b2);
                         byte colorIdThroughtPalette = GetColorIdThroughtPalette(palette, colorId);
 
-                        if ((x + p) >= 0 && (x + p) < SCREEN_WIDTH
-                            && !isTransparent(colorId) && (isAboveBG(attr)
-                            || bmp.GetPixel(x + p, mmu.LY) == Color.White)) {
+                        if ((x + p) >= 0 && (x + p) < SCREEN_WIDTH) {
+                            if (!isTransparent(colorId) && (isAboveBG(attr) || isBGWhite(x + p, mmu.LY))) {
+                                Color color = GetColor(colorIdThroughtPalette);
+                                bmp.SetPixel(x + p, mmu.LY, color);
+                            }
 
-                            Color color = GetColor(colorIdThroughtPalette);
-                            bmp.SetPixel(x + p, mmu.LY, color);
                         }
 
                     }
                 }
             }
+        }
+
+        private bool isBGWhite(int x, int y) {
+            return bmp.GetPixel(x, y).ToArgb() == Color.White.ToArgb();
         }
 
         private bool isAboveBG(byte attr) {
