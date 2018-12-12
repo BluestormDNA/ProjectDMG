@@ -235,9 +235,9 @@ namespace ProjectDMG {
         private void renderSprites(MMU mmu) {
             for (int i = 0; i < 0x9F; i += 4) { //0x9F OAM Size, 40 Sprites x 4 bytes:
                 //Byte0 - Y Position
-                byte y = (byte)(mmu.readByte((ushort)(0xFE00 + i)) - 16); //needs 16 offset
+                int y = mmu.readByte((ushort)(0xFE00 + i))-16; //needs 16 offset
                 //Byte1 - X Position
-                byte x = (byte)(mmu.readByte((ushort)(0xFE00 + i + 1)) - 8); //needs 8 offset
+                int x = mmu.readByte((ushort)(0xFE00 + i + 1))-8; //needs 8 offset
                 //Byte2 - Tile/Pattern Number
                 byte tile = mmu.readByte((ushort)(0xFE00 + i + 2));
                 //Byte3 - Attributes/Flags:
@@ -247,7 +247,7 @@ namespace ProjectDMG {
                     byte palette = mmu.isBit(4, attr) ? mmu.OBP1 : mmu.OBP0; //Bit4   Palette number  **Non CGB Mode Only** (0=OBP0, 1=OBP1)
 
                     byte tileRow = isYFlipped(attr, mmu) ? (byte)(spriteSize(mmu) - 1 - (mmu.LY - y)) : (byte)(mmu.LY - y);
-                    //((mmu.LY - y - spriteSize(mmu) + 1) * -1)
+
                     ushort tileddress = (ushort)(0x8000 + (tile * 16) + (tileRow * 2));
                     byte b1 = mmu.readByte(tileddress);
                     byte b2 = mmu.readByte((ushort)(tileddress + 1));
