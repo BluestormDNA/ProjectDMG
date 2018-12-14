@@ -6,7 +6,7 @@ namespace ProjectDMG {
     public class MMU {
 
         //GamePak
-        private string cartName = "kirby.gb";
+        private string cartName = "rojo.gb";
         private IGamePak gamePak;
 
         //BootRom
@@ -186,17 +186,22 @@ namespace ProjectDMG {
                 case 0:
                     gamePak = new MBC0();
                     break;
-                case 1:
-                case 2:
-                case 3:
+                case 0x01:
+                case 0x02:
+                case 0x03:
                     gamePak = new MBC1();
                     break;
-                case 5:
-                case 6:
+                case 0x05:
+                case 0x06:
                     Console.WriteLine("Unsupported MBC 2: " + rom[0x147]);
                     break;
+                case 0x19:
+                case 0x1A:
+                case 0x1B:
+                    gamePak = new MBC5();
+                    break;
                 default:
-                    Console.WriteLine("Unsupported MBC: " + rom[0x147]);
+                    Console.WriteLine("Unsupported MBC: " + rom[0x147].ToString("x2"));
                     break;
             }
             gamePak.Init(rom);
