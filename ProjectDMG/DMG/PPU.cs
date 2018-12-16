@@ -17,13 +17,11 @@ namespace ProjectDMG {
         private const int LCD_INTERRUPT = 1;
 
         private DirectBitmap bmp;
-        private PictureBox pictureBox;
         private int scanlineCounter;
 
-        public PPU(PictureBox pictureBox) {
-            this.pictureBox = pictureBox;
+        public PPU() {
             bmp = new DirectBitmap(SCREEN_WIDTH, SCREEN_HEIGHT);
-            pictureBox.Image = bmp.Bitmap;
+            Form.pictureBox.Image = bmp.Bitmap;
         }
 
         public void update(int cycles, MMU mmu) {
@@ -54,7 +52,7 @@ namespace ProjectDMG {
                                 changeSTATMode(1, mmu);
                                 mmu.requestInterrupt(VBLANK_INTERRUPT);
                                 //we should draw frame here if handled outside i get tearing on scroll
-                                RenderFrame(mmu, pictureBox);
+                                RenderFrame();
                             } else { //not arrived yet so return to 2
                                 changeSTATMode(2, mmu);
                             }
@@ -280,14 +278,14 @@ namespace ProjectDMG {
             return attr >> 7 == 0;
         }
 
-        public void RenderFrame(MMU mmu, PictureBox pictureBox) {
-            if (pictureBox.InvokeRequired) {
-                pictureBox.Invoke(new MethodInvoker(
+        public void RenderFrame() {
+            if (Form.pictureBox.InvokeRequired) {
+                Form.pictureBox.Invoke(new MethodInvoker(
                 delegate () {
-                    pictureBox.Refresh();
+                    Form.pictureBox.Refresh();
                 }));
             } else {
-                pictureBox.Refresh();
+                Form.pictureBox.Refresh();
             }
         }
 

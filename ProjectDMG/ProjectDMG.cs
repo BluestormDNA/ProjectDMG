@@ -7,31 +7,28 @@ using System.Windows.Forms;
 namespace ProjectDMG {
     public class ProjectDMG {
 
-        private PictureBox pictureBox;
         private CPU cpu;
         private MMU mmu;
         private PPU ppu;
         private TIMER timer;
         public JOYPAD joypad;
+
         private Thread cpuThread;
+        private bool power_switch = false;
 
-        public bool power_switch = false;
-
-        public ProjectDMG(PictureBox pictureBox) {
-
-            this.pictureBox = pictureBox;
+        public void INSERT_GAMEPAK() {
 
         }
 
-        public void POWER_ON() {
+        public void POWER_ON(String cartName) {
             cpu = new CPU();
             mmu = new MMU();
-            ppu = new PPU(pictureBox);
+            ppu = new PPU();
             timer = new TIMER();
             joypad = new JOYPAD();
 
-            mmu.loadGamePak();
             mmu.loadBootRom();
+            mmu.loadGamePak(cartName);
 
             power_switch = true;
             cpuThread = new Thread(new ThreadStart(EXECUTE));
@@ -41,7 +38,6 @@ namespace ProjectDMG {
 
         public void POWER_OFF() {
             power_switch = false;
-            if (cpuThread != null && cpuThread.IsAlive) cpuThread.Join();
         }
 
         public void EXECUTE() { // Main Loop Work in progress

@@ -11,7 +11,7 @@ namespace ProjectDMG {
         }
 
         private void Form_Load(object sender, EventArgs e) {
-            dmg = new ProjectDMG(pictureBox);
+            dmg = new ProjectDMG();
         }
 
         private void Key_Down(object sender, KeyEventArgs e) {
@@ -23,9 +23,8 @@ namespace ProjectDMG {
         }
 
         private void Drag_Drop(object sender, DragEventArgs e) {
-            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            Console.WriteLine(files[0]);
-            dmg.POWER_ON();
+            string[] cartNames = (string[])e.Data.GetData(DataFormats.FileDrop);
+            dmg.POWER_ON(cartNames[0]);
         }
 
         private void Drag_Enter(object sender, DragEventArgs e) {

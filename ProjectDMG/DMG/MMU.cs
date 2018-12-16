@@ -6,7 +6,6 @@ namespace ProjectDMG {
     public class MMU {
 
         //GamePak
-        private string cartName = "kirby.gb";
         private IGamePak gamePak;
 
         //BootRom
@@ -180,7 +179,7 @@ namespace ProjectDMG {
             }
         }
 
-        public void loadGamePak() {
+        public void loadGamePak(String cartName) {
             byte[] rom = File.ReadAllBytes(cartName);
             switch (rom[0x147]) {
                 case 0:
