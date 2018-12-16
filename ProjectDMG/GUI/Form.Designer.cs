@@ -32,23 +32,27 @@
             this.pictureBox.Location = new System.Drawing.Point(0, 0);
             this.pictureBox.Margin = new System.Windows.Forms.Padding(0);
             this.pictureBox.Name = "pictureBox";
-            this.pictureBox.Size = new System.Drawing.Size(160, 144);
+            this.pictureBox.Size = new System.Drawing.Size(320, 288);
+            this.pictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox.TabIndex = 0;
             this.pictureBox.TabStop = false;
             // 
             // Form
             // 
+            this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(144, 105);
+            this.ClientSize = new System.Drawing.Size(304, 249);
             this.Controls.Add(this.pictureBox);
             this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "Form";
             this.Text = "ProjectDMG";
             this.Load += new System.EventHandler(this.Form_Load);
+            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Drag_Drop);
+            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Drag_Enter);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Key_Down);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Key_Up);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();

@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ProjectDMG {
@@ -28,5 +21,17 @@ namespace ProjectDMG {
         private void Key_Up(object sender, KeyEventArgs e) {
             dmg.joypad.handleKeyUp(e);
         }
+
+        private void Drag_Drop(object sender, DragEventArgs e) {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            Console.WriteLine(files[0]);
+            dmg.POWER_ON();
+        }
+
+        private void Drag_Enter(object sender, DragEventArgs e) {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.All;
+            dmg.POWER_OFF();
+        }
+
     }
 }

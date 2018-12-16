@@ -53,7 +53,8 @@ namespace ProjectDMG {
                             if (mmu.LY == SCREEN_HEIGHT) { //check if we arrived Vblank
                                 changeSTATMode(1, mmu);
                                 mmu.requestInterrupt(VBLANK_INTERRUPT);
-                                //we should draw frame here
+                                //we should draw frame here if handled outside i get tearing on scroll
+                                RenderFrame(mmu, pictureBox);
                             } else { //not arrived yet so return to 2
                                 changeSTATMode(2, mmu);
                             }
