@@ -36,7 +36,7 @@ namespace ProjectDMG {
                 PC--;
                 HALT_BUG = false;
             }
-            debug(mmu, opcode);
+            //debug(mmu, opcode);
             cycles = 0;
 
             switch (opcode) {

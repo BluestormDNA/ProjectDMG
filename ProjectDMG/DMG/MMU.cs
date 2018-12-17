@@ -128,6 +128,7 @@ namespace ProjectDMG {
                     break;
                 case ushort r when addr >= 0xFF00 && addr <= 0xFF7F:    // FF00-FF7F IO Ports
                     switch (addr) {
+                        case 0xFF0F: b |= 0xE0; break; // IF returns 1 on first 3 unused bits
                         case 0xFF04:                //DIV on write = 0
                         case 0xFF44: b = 0; break;  //LY on write = 0
                         case 0xFF46: DMA(b); break;

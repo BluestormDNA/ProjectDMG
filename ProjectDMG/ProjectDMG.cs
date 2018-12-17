@@ -71,7 +71,7 @@ namespace ProjectDMG {
         }
 
         private void handleInterrupts(MMU mmu, CPU cpu) {
-            if (mmu.IF != 0) {
+            if ((mmu.IF & 0x1F) != 0) {
                 for (byte i = 0; i < 5; i++) {
                     if (mmu.isBit(i, mmu.IE) && mmu.isBit(i, mmu.IF)) {
                         cpu.ExecuteInterrupt(mmu, i);
