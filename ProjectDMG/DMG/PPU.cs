@@ -51,7 +51,6 @@ namespace ProjectDMG {
                             if (mmu.LY == SCREEN_HEIGHT) { //check if we arrived Vblank
                                 changeSTATMode(1, mmu);
                                 mmu.requestInterrupt(VBLANK_INTERRUPT);
-                                //we should draw frame here if handled outside i get tearing on scroll
                                 RenderFrame();
                             } else { //not arrived yet so return to 2
                                 changeSTATMode(2, mmu);
@@ -86,7 +85,7 @@ namespace ProjectDMG {
                 scanlineCounter = 0;
                 mmu.LY = 0;
                 mmu.STAT = (byte)(mmu.STAT & ~0b11111100);
-                mmu.STAT = (byte)(mmu.STAT | 0x2); //Forces Mode 2 OAM Start
+                //mmu.STAT = (byte)(mmu.STAT | 0x2); //Forces Mode 2 OAM Start
             }
         }
 
@@ -234,9 +233,9 @@ namespace ProjectDMG {
         private void renderSprites(MMU mmu) {
             for (int i = 0; i < 0x9F; i += 4) { //0x9F OAM Size, 40 Sprites x 4 bytes:
                 //Byte0 - Y Position
-                int y = mmu.readByte((ushort)(0xFE00 + i))-16; //needs 16 offset
+                int y = mmu.readByte((ushort)(0xFE00 + i)) - 16; //needs 16 offset
                 //Byte1 - X Position
-                int x = mmu.readByte((ushort)(0xFE00 + i + 1))-8; //needs 8 offset
+                int x = mmu.readByte((ushort)(0xFE00 + i + 1)) - 8; //needs 8 offset
                 //Byte2 - Tile/Pattern Number
                 byte tile = mmu.readByte((ushort)(0xFE00 + i + 2));
                 //Byte3 - Attributes/Flags:
@@ -279,14 +278,7 @@ namespace ProjectDMG {
         }
 
         public void RenderFrame() {
-            if (Form.pictureBox.InvokeRequired) {
-                Form.pictureBox.Invoke(new MethodInvoker(
-                delegate () {
-                    Form.pictureBox.Refresh();
-                }));
-            } else {
-                Form.pictureBox.Refresh();
-            }
+            Form.pictureBox.Refresh();
         }
 
         private bool isLCDEnabled(MMU mmu) {
