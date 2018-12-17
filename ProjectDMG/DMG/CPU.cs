@@ -24,14 +24,19 @@ namespace ProjectDMG {
         private bool FlagC { get { return (F & 0x10) != 0; } set { F = value ? (byte)(F | 0x10) : (byte)(F & ~0x10); } }
 
         private bool IME;
-        //private bool IMEEnabler;
+        private bool IMEEnabler;
         private bool HALTED;
+        private bool HALT_BUG;
         private int cycles = 8;
 
         public int Exe(MMU mmu) {
 
             byte opcode = mmu.readByte(PC++);
-            //debug(mmu, opcode);
+            if (HALT_BUG) {
+                PC--;
+                HALT_BUG = false;
+            }
+            debug(mmu, opcode);
             cycles = 0;
 
             switch (opcode) {
@@ -200,7 +205,7 @@ namespace ProjectDMG {
                 case 0x73: mmu.writeByte(HL, E);  break; //LD (HL),E	1 8	   ----
                 case 0x74: mmu.writeByte(HL, H);  break; //LD (HL),H	1 8	   ----
                 case 0x75: mmu.writeByte(HL, L);  break; //LD (HL),L	1 8	   ----
-                case 0x76: HALTED = true; PC--;   break; //HLT	        1 4    ----
+                case 0x76: HALT(mmu);             break; //HLT	        1 4    ----
                 case 0x77: mmu.writeByte(HL, A);  break; //LD (HL),A	1 8    ----
                                                  
                 case 0x78: A = B;                 break; //LD A,B	    1 4    ----
@@ -350,7 +355,7 @@ namespace ProjectDMG {
                 case 0xF8: HL = DADr8(SP, mmu);             break; //LD HL,SP+R8 2 12    00HC
                 case 0xF9: SP = HL;                         break; //LD SP,HL    1 8     ----
                 case 0xFA: A = mmu.readByte(mmu.readWord(PC)); PC += 2;   break; //LD A,(A16)  3 16    ----
-                case 0xFB: IME = true;                      break; //IE          1 4     ----
+                case 0xFB: IMEEnabler = true;               break; //IE          1 4     ----
                 //case 0xFC:                                break; //Illegal Opcode
                 //case 0xFD:                                break; //Illegal Opcode
                 case 0xFE: CP(mmu.readByte(PC)); PC += 1;   break; //CP D8       2 8     Z1HC
@@ -906,24 +911,31 @@ namespace ProjectDMG {
             PC = b;
         }
 
-        public void ExecuteInterrupt(MMU mmu, byte b) { //TODO pending rewrite
-            if (IME && HALTED) {
-                PUSH(mmu, (ushort)(PC + 1));
-                PC = (ushort)(0x40 + (8 * b));
-                IME = false;
-                mmu.IF = mmu.bitClear(b, mmu.IF);
+
+        private void HALT(MMU mmu) {
+            if (!IME) {
+                if ((mmu.IE & mmu.IF & 0x1F) == 0) {
+                    HALTED = true;
+                    PC--;
+                } else {
+                    HALT_BUG = true;
+                }
+            }
+        }
+
+        public void ExecuteInterrupt(MMU mmu, byte b) {
+            IME |= IMEEnabler;
+            IMEEnabler = false;
+            if (HALTED) {
+                PC++;
                 HALTED = false;
-            } else if (IME) {
+            }
+            if (IME) {
                 PUSH(mmu, PC);
                 PC = (ushort)(0x40 + (8 * b));
                 IME = false;
                 mmu.IF = mmu.bitClear(b, mmu.IF);
-                HALTED = false;
-            } else if(!IME && HALTED) {
-                PC++;
-                HALTED = false;
             }
-
         }
 
         private void PUSH(MMU mmu, ushort w) {// (SP - 1) < -PC.hi; (SP - 2) < -PC.lo
