@@ -69,12 +69,14 @@ namespace ProjectDMG {
 
         public byte readByte(ushort addr) {
             switch (addr) {                                             // General Memory Map 64KB
-                case ushort r when addr >= 0x0000 && addr <= 0x7FFF:    //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00) 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
+                case ushort r when addr >= 0x0000 && addr <= 0x3FFF:    //0000-3FFF 16KB ROM Bank 00 (in cartridge, private at bank 00)
                     if (BR == 0 && addr < 0x100) {
                         return BOOT_ROM[addr];
                     } else {
-                        return gamePak.ReadROM(addr);
+                        return gamePak.ReadLoROM(addr);
                     }
+                case ushort r when addr >= 0x4000 && addr <= 0x7FFF:    // 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
+                    return gamePak.ReadHiROM(addr - 0x4000);
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
                     return VRAM[addr - 0x8000];
                 case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any)
@@ -109,7 +111,7 @@ namespace ProjectDMG {
                     VRAM[addr - 0x8000] = b;
                     break;
                 case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any) <br/>
-                    gamePak.WriteERAM(addr, b); //ERAM[addr - 0xA000] = b;
+                    gamePak.WriteERAM(addr - 0xA000, b);
                     break;
                 case ushort r when addr >= 0xC000 && addr <= 0xCFFF:    // C000-CFFF 4KB Work RAM Bank 0(WRAM) <br/>
                     WRAM0[addr - 0xC000] = b;
