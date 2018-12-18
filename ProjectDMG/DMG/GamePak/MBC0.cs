@@ -15,8 +15,12 @@
             return 0xFF; //MBC0 dosn't have ERAM
         }
 
-        public byte ReadROM(ushort addr) {
+        public byte ReadLoROM(ushort addr) {
             return ROM[addr];
+        }
+        
+        public byte ReadHiRom(ushort addr){
+            return ROM[addr + 0x4000];
         }
 
         public void WriteERAM(ushort addr, byte value) {
