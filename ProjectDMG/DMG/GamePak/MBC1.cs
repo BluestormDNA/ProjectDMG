@@ -6,11 +6,11 @@ namespace ProjectDMG.DMG.GamePak {
         private byte[] ROM;
         private byte[] ERAM = new byte [0x8000]; //MBC1 MAX ERAM on 4 banks
         private bool ERAM_ENABLED;
-        private int ROM_BANK = 1; //default as 0 is 0x000 - 0x3FFF fixed
-        private const int ROM_OFFSET = 0x4000;
-        private const int ERAM_OFFSET = 0x2000;
+        private int ROM_BANK = 1; //default as 0 is 0x0000 - 0x3FFF fixed
         private int RAM_BANK;
         private int BANKING_MODE; // 0 ROM / 1 RAM
+        private const int ROM_OFFSET = 0x4000;
+        private const int ERAM_OFFSET = 0x2000;
 
         public void Init(byte[] ROM) {
             this.ROM = ROM;
@@ -18,26 +18,23 @@ namespace ProjectDMG.DMG.GamePak {
 
         public byte ReadERAM(ushort addr) {
             if (ERAM_ENABLED){
-                return ERAM[(ERAM_OFFSET * RAM_BANK) + (addr - 0xA000)];
+                return ERAM[(ERAM_OFFSET * RAM_BANK) + addr];
             } else {
                 return 0xFF;
             }
         }
 
-        public byte ReadROM(ushort addr) {
-            switch (addr) {
-                case ushort r when addr >= 0x0000 && addr <= 0x3FFF:
-                    return ROM[addr];
-                case ushort r when addr >= 0x4000 && addr <= 0x7FFF:
-                    return ROM[(ROM_OFFSET * ROM_BANK) + (addr - ROM_OFFSET)];
-                default:
-                    return 0xFF;
-            }
+        public byte ReadLoROM(ushort addr) {
+            return ROM[addr];
+        }
+        
+        public byte ReadHiROM(ushort addr) {
+            return ROM[(ROM_OFFSET * ROM_BANK) + addr];
         }
 
         public void WriteERAM(ushort addr, byte value) {
             if (ERAM_ENABLED) {
-               ERAM[(ERAM_OFFSET * RAM_BANK) + (addr - 0xA000)] = value;
+               ERAM[(ERAM_OFFSET * RAM_BANK) + addr] = value;
             }
         }
 
@@ -47,11 +44,13 @@ namespace ProjectDMG.DMG.GamePak {
                     ERAM_ENABLED = value == 0x0A ? true : false;
                     break;
                 case ushort r when addr >= 0x2000 && addr <= 0x3FFF:
-                    ROM_BANK = value & 0x1F;
+                    ROM_BANK = value & 0x1F; //only last 5bits are used
+                    if (ROM_BANK == 0x0 || ROM_BANK == 0x20 || ROM_BANK == 0x40 || ROM_BANK == 0x60) ROM_BANK+=1;
                     break;
                 case ushort r when addr >= 0x4000 && addr <= 0x5FFF:
                     if(BANKING_MODE == 0) {
                         ROM_BANK |= value & 0x3;
+                        if (ROM_BANK == 0x0 || ROM_BANK == 0x20 || ROM_BANK == 0x40 || ROM_BANK == 0x60) ROM_BANK+=1;
                     } else {
                         RAM_BANK = value & 0x3;
                     }
