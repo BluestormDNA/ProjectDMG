@@ -148,12 +148,12 @@ namespace ProjectDMG {
 
                 byte tileLine = (byte)(y % 8 * 2);
 
-                byte b1 = mmu.readByte((ushort)(tileLoc + tileLine));
-                byte b2 = mmu.readByte((ushort)(tileLoc + tileLine + 1));
+                byte lo = mmu.readByte((ushort)(tileLoc + tileLine));
+                byte hi = mmu.readByte((ushort)(tileLoc + tileLine + 1));
 
                 byte colorBit = (byte)(7 - x % 8); //inversed
 
-                byte colorId = GetColorIdBits(colorBit, b1, b2);
+                byte colorId = GetColorIdBits(colorBit, hi, lo);
                 byte colorIdThroughtPalette = GetColorIdThroughtPalette(mmu.BGP, colorId);
                 Color color = GetColor(colorIdThroughtPalette);
 
@@ -256,7 +256,7 @@ namespace ProjectDMG {
                         byte colorIdThroughtPalette = GetColorIdThroughtPalette(palette, colorId);
 
                         if ((x + p) >= 0 && (x + p) < SCREEN_WIDTH) {
-                            if (!isTransparent(colorId) && (isAboveBG(attr) || isBGWhite(x + p, mmu.LY))) {
+                            if (!isTransparent(colorId) && (isAboveBG(attr) || isBGWhite(mmu.BGP, x + p, mmu.LY))) {
                                 Color color = GetColor(colorIdThroughtPalette);
                                 bmp.SetPixel(x + p, mmu.LY, color);
                             }
@@ -268,8 +268,9 @@ namespace ProjectDMG {
             }
         }
 
-        private bool isBGWhite(int x, int y) {
-            return bmp.GetPixel(x, y).ToArgb() == Color.White.ToArgb();
+        private bool isBGWhite(byte BGP, int x, int y) {
+            Color color = GetColor((byte)(BGP & 0x3));
+            return bmp.GetPixel(x, y).ToArgb() == color.ToArgb();
         }
 
         private bool isAboveBG(byte attr) {
