@@ -70,8 +70,7 @@ namespace ProjectDMG {
                         break;
                 }
 
-                //handle coincidence Flag //TODO REWRITE?
-                if (mmu.LY == mmu.LYC) {
+                if (mmu.LY == mmu.LYC) { //handle coincidence Flag
                     mmu.STAT = mmu.bitSet(2, mmu.STAT);
                     if (mmu.isBit(6, mmu.STAT)) {
                         mmu.requestInterrupt(LCD_INTERRUPT);
@@ -81,10 +80,9 @@ namespace ProjectDMG {
                 }
 
             } else { //LCD Disabled
-                //Console.WriteLine("LCD DISABLED");
                 scanlineCounter = 0;
                 mmu.LY = 0;
-                mmu.STAT = (byte)(mmu.STAT & ~0b11111100);
+                mmu.STAT = (byte)(mmu.STAT & 0b11111100);
                 //mmu.STAT = (byte)(mmu.STAT | 0x2); //Forces Mode 2 OAM Start
             }
         }
@@ -129,7 +127,6 @@ namespace ProjectDMG {
         }
 
         private void renderBG(MMU mmu) {
-            Console.WriteLine($"BGP:{mmu.BGP.ToString("x2")}  OBP0:{mmu.OBP0.ToString("x2")}  OBP1:{mmu.OBP1.ToString("x2")}");
             byte y = isWindow(mmu) ? (byte)(mmu.LY - mmu.WY) : (byte)(mmu.SCY + mmu.LY);
             ushort tileRow = (ushort)(y / 8 * 32);
 
