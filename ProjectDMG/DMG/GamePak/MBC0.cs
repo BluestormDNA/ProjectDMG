@@ -19,7 +19,7 @@
             return ROM[addr];
         }
         
-        public byte ReadHiRom(ushort addr){
+        public byte ReadHiROM(ushort addr){
             return ROM[addr + 0x4000];
         }
 

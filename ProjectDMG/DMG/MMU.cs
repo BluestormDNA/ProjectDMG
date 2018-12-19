@@ -65,6 +65,9 @@ namespace ProjectDMG {
             //FF4D - KEY1 - CGB Mode Only - Prepare Speed Switch
             //HardCoded to FF to identify DMG as 00 is GBC
             IO[0x4D] = 0xFF;
+            IO[0x47] = 0xFC;
+            IO[0x48] = 0xFF;
+            IO[0x49] = 0xFF;
         }
 
         public byte readByte(ushort addr) {
@@ -76,11 +79,11 @@ namespace ProjectDMG {
                         return gamePak.ReadLoROM(addr);
                     }
                 case ushort r when addr >= 0x4000 && addr <= 0x7FFF:    // 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
-                    return gamePak.ReadHiROM(addr - 0x4000);
+                    return gamePak.ReadHiROM((ushort)(addr - 0x4000));//
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
                     return VRAM[addr - 0x8000];
                 case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any)
-                    return gamePak.ReadERAM(addr); //return ERAM[addr - 0xA000];
+                    return gamePak.ReadERAM((ushort)(addr - 0xA000));
                 case ushort r when addr >= 0xC000 && addr <= 0xCFFF:    // C000-CFFF 4KB Work RAM Bank 0(WRAM)
                     return WRAM0[addr - 0xC000];
                 case ushort r when addr >= 0xD000 && addr <= 0xDFFF:    // D000-DFFF 4KB Work RAM Bank 1(WRAM)(switchable bank 1-7 in CGB Mode)
@@ -111,7 +114,7 @@ namespace ProjectDMG {
                     VRAM[addr - 0x8000] = b;
                     break;
                 case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any) <br/>
-                    gamePak.WriteERAM(addr - 0xA000, b);
+                    gamePak.WriteERAM((ushort)(addr - 0xA000), b);
                     break;
                 case ushort r when addr >= 0xC000 && addr <= 0xCFFF:    // C000-CFFF 4KB Work RAM Bank 0(WRAM) <br/>
                     WRAM0[addr - 0xC000] = b;

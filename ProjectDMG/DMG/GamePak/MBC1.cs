@@ -45,12 +45,14 @@ namespace ProjectDMG.DMG.GamePak {
                     break;
                 case ushort r when addr >= 0x2000 && addr <= 0x3FFF:
                     ROM_BANK = value & 0x1F; //only last 5bits are used
-                    if (ROM_BANK == 0x0 || ROM_BANK == 0x20 || ROM_BANK == 0x40 || ROM_BANK == 0x60) ROM_BANK+=1;
+                    if (ROM_BANK == 0x00 || ROM_BANK == 0x20 || ROM_BANK == 0x40 || ROM_BANK == 0x60)
+                        ROM_BANK++;
                     break;
                 case ushort r when addr >= 0x4000 && addr <= 0x5FFF:
                     if(BANKING_MODE == 0) {
                         ROM_BANK |= value & 0x3;
-                        if (ROM_BANK == 0x0 || ROM_BANK == 0x20 || ROM_BANK == 0x40 || ROM_BANK == 0x60) ROM_BANK+=1;
+                        if (ROM_BANK == 0x00 || ROM_BANK == 0x20 || ROM_BANK == 0x40 || ROM_BANK == 0x60)
+                            ROM_BANK++;
                     } else {
                         RAM_BANK = value & 0x3;
                     }
@@ -62,5 +64,6 @@ namespace ProjectDMG.DMG.GamePak {
                     break;
             }
         }
+
     }
 }

@@ -18,26 +18,23 @@ namespace ProjectDMG.DMG.GamePak {
 
         public byte ReadERAM(ushort addr) {
             if (ERAM_ENABLED){
-                return ERAM[(ERAM_OFFSET * RAM_BANK) + (addr - 0xA000)];
+                return ERAM[(ERAM_OFFSET * RAM_BANK) + addr];
             } else {
                 return 0xFF;
             }
         }
 
-        public byte ReadROM(ushort addr) {
-            switch (addr) {
-                case ushort r when addr >= 0x0000 && addr <= 0x3FFF:
-                    return ROM[addr];
-                case ushort r when addr >= 0x4000 && addr <= 0x7FFF:
-                    return ROM[(ROM_OFFSET * (ROM_BANK_HI_BIT + ROM_BANK_LOW_BITS)) + (addr - ROM_OFFSET)];
-                default:
-                    return 0xFF;
-            }
+        public byte ReadLoROM(ushort addr) {
+            return ROM[addr];
+        }
+
+        public byte ReadHiROM(ushort addr) {
+            return ROM[(ROM_OFFSET * (ROM_BANK_HI_BIT + ROM_BANK_LOW_BITS)) + addr];
         }
 
         public void WriteERAM(ushort addr, byte value) {
             if (ERAM_ENABLED) {
-               ERAM[(ERAM_OFFSET * RAM_BANK) + (addr - 0xA000)] = value;
+               ERAM[(ERAM_OFFSET * RAM_BANK) + addr] = value;
             }
         }
 
@@ -57,5 +54,6 @@ namespace ProjectDMG.DMG.GamePak {
                     break;
             }
         }
+
     }
 }
