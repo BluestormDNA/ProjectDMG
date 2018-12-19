@@ -151,9 +151,9 @@ namespace ProjectDMG {
                 byte lo = mmu.readByte((ushort)(tileLoc + tileLine));
                 byte hi = mmu.readByte((ushort)(tileLoc + tileLine + 1));
 
-                byte colorBit = (byte)(7 - x % 8); //inversed
+                byte colorBit = (byte)(7 - (x % 8)); //inversed
 
-                byte colorId = GetColorIdBits(colorBit, hi, lo);
+                byte colorId = GetColorIdBits(colorBit, lo, hi);
                 byte colorIdThroughtPalette = GetColorIdThroughtPalette(mmu.BGP, colorId);
                 Color color = GetColor(colorIdThroughtPalette);
 
@@ -177,9 +177,9 @@ namespace ProjectDMG {
             }
         }
 
-        private byte GetColorIdBits(byte colorBit, byte b1, byte b2) {
-            int hi = (b2 >> colorBit) & 0x1;
-            int lo = (b1 >> colorBit) & 0x1;
+        private byte GetColorIdBits(byte colorBit, byte l, byte h) {
+            int hi = (h >> colorBit) & 0x1;
+            int lo = (l >> colorBit) & 0x1;
             return (byte)(hi << 1 | lo);
         }
 
@@ -231,7 +231,7 @@ namespace ProjectDMG {
         }
 
         private void renderSprites(MMU mmu) {
-            for (int i = 0; i < 0x9F; i += 4) { //0x9F OAM Size, 40 Sprites x 4 bytes:
+            for (int i = 0x9C; i >= 0; i -= 4) { //0x9F OAM Size, 40 Sprites x 4 bytes:
                 //Byte0 - Y Position
                 int y = mmu.readByte((ushort)(0xFE00 + i)) - 16; //needs 16 offset
                 //Byte1 - X Position
@@ -247,12 +247,12 @@ namespace ProjectDMG {
                     byte tileRow = isYFlipped(attr, mmu) ? (byte)(spriteSize(mmu) - 1 - (mmu.LY - y)) : (byte)(mmu.LY - y);
 
                     ushort tileddress = (ushort)(0x8000 + (tile * 16) + (tileRow * 2));
-                    byte b1 = mmu.readByte(tileddress);
-                    byte b2 = mmu.readByte((ushort)(tileddress + 1));
+                    byte lo = mmu.readByte(tileddress);
+                    byte hi = mmu.readByte((ushort)(tileddress + 1));
 
                     for (byte p = 0; p < 8; p++) {
                         byte IdPos = isXFlipped(attr, mmu) ? p : (byte)(7 - p);
-                        byte colorId = GetColorIdBits(IdPos, b1, b2);
+                        byte colorId = GetColorIdBits(IdPos, lo, hi);
                         byte colorIdThroughtPalette = GetColorIdThroughtPalette(palette, colorId);
 
                         if ((x + p) >= 0 && (x + p) < SCREEN_WIDTH) {
