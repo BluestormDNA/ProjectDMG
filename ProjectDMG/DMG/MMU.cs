@@ -65,9 +65,6 @@ namespace ProjectDMG {
             //FF4D - KEY1 - CGB Mode Only - Prepare Speed Switch
             //HardCoded to FF to identify DMG as 00 is GBC
             IO[0x4D] = 0xFF;
-            IO[0x47] = 0xFC;
-            IO[0x48] = 0xFF;
-            IO[0x49] = 0xFF;
         }
 
         public byte readByte(ushort addr) {
