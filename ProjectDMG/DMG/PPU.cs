@@ -129,6 +129,7 @@ namespace ProjectDMG {
         }
 
         private void renderBG(MMU mmu) {
+            Console.WriteLine($"BGP:{mmu.BGP.ToString("x2")}  OBP0:{mmu.OBP0.ToString("x2")}  OBP1:{mmu.OBP1.ToString("x2")}");
             byte y = isWindow(mmu) ? (byte)(mmu.LY - mmu.WY) : (byte)(mmu.SCY + mmu.LY);
             ushort tileRow = (ushort)(y / 8 * 32);
 
@@ -167,9 +168,9 @@ namespace ProjectDMG {
                 case 0b00:
                     return Color.White;
                 case 0b01:
-                    return Color.Gray;
+                    return Color.LightGray;
                 case 0b10:
-                    return Color.DarkGray;
+                    return Color.Gray;
                 case 0b11:
                     return Color.Black;
                 default: //Just in case something is wrong
