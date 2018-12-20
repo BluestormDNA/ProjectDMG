@@ -346,7 +346,7 @@ namespace ProjectDMG {
                 case 0xF0: A = mmu.readByte((ushort)(0xFF00 + mmu.readByte(PC))); PC += 1;  break; //LDH A,(A8)  2 12    ----
                 case 0xF1: AF = POP(mmu);                   break; //POP AF      1 12    ZNHC
                 case 0xF2: A = mmu.readByte((ushort)(0xFF00 + C));  break; //LD A,(C)    1 8     ----
-                case 0xF3: IME = false;                      break; //DI          1 4     ----
+                case 0xF3: IME = false;                     break; //DI          1 4     ----
                 //case 0xF4:                                break; //Illegal Opcode
                 case 0xF5: PUSH(mmu, AF);                   break; //PUSH AF     1 16    ----
                 case 0xF6: OR(mmu.readByte(PC)); PC += 1;   break; //OR D8       2 8     Z000
@@ -924,8 +924,6 @@ namespace ProjectDMG {
         }
 
         public void ExecuteInterrupt(MMU mmu, byte b) {
-            IME |= IMEEnabler;
-            IMEEnabler = false;
             if (HALTED) {
                 PC++;
                 HALTED = false;
@@ -936,6 +934,8 @@ namespace ProjectDMG {
                 IME = false;
                 mmu.IF = mmu.bitClear(b, mmu.IF);
             }
+            IME |= IMEEnabler;
+            IMEEnabler = false;
         }
 
         private void PUSH(MMU mmu, ushort w) {// (SP - 1) < -PC.hi; (SP - 2) < -PC.lo
