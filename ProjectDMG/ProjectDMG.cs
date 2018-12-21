@@ -73,6 +73,7 @@ namespace ProjectDMG {
                     }
                 }
             }
+            cpu.UpdateIME();
         }
 
         private static long nanoTime() {

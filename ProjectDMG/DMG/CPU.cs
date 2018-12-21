@@ -923,6 +923,11 @@ namespace ProjectDMG {
             }
         }
 
+        public void UpdateIME() {
+            IME |= IMEEnabler;
+            IMEEnabler = false;
+        }
+
         public void ExecuteInterrupt(MMU mmu, byte b) {
             if (HALTED) {
                 PC++;
@@ -934,8 +939,6 @@ namespace ProjectDMG {
                 IME = false;
                 mmu.IF = mmu.bitClear(b, mmu.IF);
             }
-            IME |= IMEEnabler;
-            IMEEnabler = false;
         }
 
         private void PUSH(MMU mmu, ushort w) {// (SP - 1) < -PC.hi; (SP - 2) < -PC.lo
