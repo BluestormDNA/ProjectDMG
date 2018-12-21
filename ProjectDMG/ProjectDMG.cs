@@ -13,12 +13,7 @@ namespace ProjectDMG {
         private TIMER timer;
         public JOYPAD joypad;
 
-        private Thread cpuThread;
-        private bool power_switch = false;
-
-        public void INSERT_GAMEPAK() {
-
-        }
+        private bool power_switch;
 
         public void POWER_ON(String cartName) {
             cpu = new CPU();
@@ -31,7 +26,7 @@ namespace ProjectDMG {
             mmu.loadGamePak(cartName);
 
             power_switch = true;
-            cpuThread = new Thread(new ThreadStart(EXECUTE));
+            Thread cpuThread = new Thread(new ThreadStart(EXECUTE));
             cpuThread.IsBackground = true;
             cpuThread.Start();
         }
