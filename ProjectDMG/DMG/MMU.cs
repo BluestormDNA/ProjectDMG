@@ -82,13 +82,11 @@ namespace ProjectDMG {
                 case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any)
                     return gamePak.ReadERAM((ushort)(addr - 0xA000));
                 case ushort r when addr >= 0xC000 && addr <= 0xCFFF:    // C000-CFFF 4KB Work RAM Bank 0(WRAM) <br/>
-                case ushort r when addr >= 0xE000 && addr <= 0xEFFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)  
+                case ushort s when addr >= 0xE000 && addr <= 0xEFFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)  
                     return WRAM0[addr & 0xFFF];
-                    break;
                 case ushort r when addr >= 0xD000 && addr <= 0xDFFF:    // D000-DFFF 4KB Work RAM Bank 1(WRAM)(switchable bank 1-7 in CGB Mode) <br/>
-                case ushort r when addr >= 0xF000 && addr <= 0xFDFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)
+                case ushort s when addr >= 0xF000 && addr <= 0xFDFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)
                     return WRAM1[addr & 0xFFF];
-                    break;
                 case ushort r when addr >= 0xFE00 && addr <= 0xFE9F:    // FE00-FE9F Sprite Attribute Table(OAM)
                     return OAM[addr - 0xFE00];
                 case ushort r when addr >= 0xFEA0 && addr <= 0xFEFF:    // FEA0-FEFF Not Usable 0
@@ -116,11 +114,11 @@ namespace ProjectDMG {
                     gamePak.WriteERAM((ushort)(addr - 0xA000), b);
                     break;
                 case ushort r when addr >= 0xC000 && addr <= 0xCFFF:    // C000-CFFF 4KB Work RAM Bank 0(WRAM) <br/>
-                case ushort r when addr >= 0xE000 && addr <= 0xEFFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)  
+                case ushort s when addr >= 0xE000 && addr <= 0xEFFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)  
                     WRAM0[addr & 0xFFF] = b;
                     break;
                 case ushort r when addr >= 0xD000 && addr <= 0xDFFF:    // D000-DFFF 4KB Work RAM Bank 1(WRAM)(switchable bank 1-7 in CGB Mode) <br/>
-                case ushort r when addr >= 0xF000 && addr <= 0xFDFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)
+                case ushort s when addr >= 0xF000 && addr <= 0xFDFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)
                     WRAM1[addr & 0xFFF] = b;
                     break;
                 case ushort r when addr >= 0xFE00 && addr <= 0xFE9F:    // FE00-FE9F Sprite Attribute Table(OAM)
