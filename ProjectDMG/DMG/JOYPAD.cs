@@ -29,11 +29,11 @@ namespace ProjectDMG {
 
         public void update(MMU mmu) {
             if(!mmu.isBit(4, mmu.JOYP)) {
-                mmu.JOYP = (byte)(0xE0 | pad);
+                mmu.JOYP = (byte)((mmu.JOYP & 0xF0) | pad);
                 if(pad != 0xF) mmu.requestInterrupt(JOYPAD_INTERRUPT);
             }
             if (!mmu.isBit(5, mmu.JOYP)) {
-                mmu.JOYP = (byte)(0xD0 | buttons);
+                mmu.JOYP = (byte)((mmu.JOYP & 0xF0) | buttons);
                 if (buttons != 0xF) mmu.requestInterrupt(JOYPAD_INTERRUPT);
             }
         }
