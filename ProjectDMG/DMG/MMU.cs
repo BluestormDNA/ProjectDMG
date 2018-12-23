@@ -198,6 +198,13 @@ namespace ProjectDMG {
                 case 0x06:
                     gamePak = new MBC2();
                     break;
+                case 0x0F:
+                case 0x10:
+                case 0x11:
+                case 0x12:
+                case 0x13:
+                    gamePak = new MBC3();
+                    break;
                 case 0x19:
                 case 0x1A:
                 case 0x1B:
