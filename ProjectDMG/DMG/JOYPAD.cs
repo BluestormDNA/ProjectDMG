@@ -36,6 +36,7 @@ namespace ProjectDMG {
                 mmu.JOYP = (byte)((mmu.JOYP & 0xF0) | buttons);
                 if (buttons != 0xF) mmu.requestInterrupt(JOYPAD_INTERRUPT);
             }
+            if ((mmu.JOYP & 0b00110000) == 0b00110000) mmu.JOYP = 0xFF;
         }
 
         private byte GetKeyBit(KeyEventArgs e) {

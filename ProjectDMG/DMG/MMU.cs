@@ -65,6 +65,7 @@ namespace ProjectDMG {
             //FF4D - KEY1 - CGB Mode Only - Prepare Speed Switch
             //HardCoded to FF to identify DMG as 00 is GBC
             IO[0x4D] = 0xFF;
+            //IO[0x00] = 0xCF;
         }
 
         public byte readByte(ushort addr) {
@@ -76,7 +77,7 @@ namespace ProjectDMG {
                         return gamePak.ReadLoROM(addr);
                     }
                 case ushort r when addr >= 0x4000 && addr <= 0x7FFF:    // 4000-7FFF 16KB ROM Bank 01..NN(in cartridge, switchable bank number)
-                    return gamePak.ReadHiROM((ushort)(addr - 0x4000));//
+                    return gamePak.ReadHiROM((ushort)(addr - 0x4000));
                 case ushort r when addr >= 0x8000 && addr <= 0x9FFF:    // 8000-9FFF 8KB Video RAM(VRAM)(switchable bank 0-1 in CGB Mode)
                     return VRAM[addr - 0x8000];
                 case ushort r when addr >= 0xA000 && addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any)
@@ -133,6 +134,7 @@ namespace ProjectDMG {
                         case 0xFF04:                //DIV on write = 0
                         case 0xFF44: b = 0; break;  //LY on write = 0
                         case 0xFF46: DMA(b); break;
+                        //case 0xFF00: b |= 0xC0; break;
                     }
                     //if (addr == 0xFF02 && b == 0x81) { //Temp Serial Link output for debug
                        //Console.Write(Convert.ToChar(readByte(0xFF01)));
