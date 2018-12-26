@@ -12,7 +12,7 @@ namespace ProjectDMG {
         private TIMER timer;
         public JOYPAD joypad;
 
-        private bool power_switch;
+        public bool power_switch;
 
         public void POWER_ON(String cartName) {
             cpu = new CPU();
@@ -59,7 +59,8 @@ namespace ProjectDMG {
                 }
                 elapsed = nanoTime();
                 //Console.WriteLine(dev++ +" " +  (elapsed-start)/1000);
-                //if ((elapsed - start) < 12000000) Thread.Sleep(1);
+                if ((elapsed - start) < 15700000)
+                    Thread.Sleep(1);
                 //Busy waiting :( but sleeping the thread equals to choppy frame rate
             }
         }

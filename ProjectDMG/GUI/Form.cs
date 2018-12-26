@@ -15,11 +15,11 @@ namespace ProjectDMG {
         }
 
         private void Key_Down(object sender, KeyEventArgs e) {
-            dmg.joypad.handleKeyDown(e);
+            if (dmg.power_switch) dmg.joypad.handleKeyDown(e);
         }
 
         private void Key_Up(object sender, KeyEventArgs e) {
-            dmg.joypad.handleKeyUp(e);
+            if (dmg.power_switch) dmg.joypad.handleKeyUp(e);
         }
 
         private void Drag_Drop(object sender, DragEventArgs e) {
