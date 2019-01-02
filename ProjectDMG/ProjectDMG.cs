@@ -2,6 +2,8 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace ProjectDMG {
     public class ProjectDMG {
@@ -25,9 +27,10 @@ namespace ProjectDMG {
             mmu.loadGamePak(cartName);
 
             power_switch = true;
-            Thread cpuThread = new Thread(new ThreadStart(EXECUTE));
-            cpuThread.IsBackground = true;
+
+            Thread cpuThread = new Thread(new ThreadStart(EXECUTETEST));
             cpuThread.Start();
+            //Task t = Task.Factory.StartNew(EXECUTETEST, TaskCreationOptions.LongRunning);
         }
 
         public void POWER_OFF() {
@@ -39,7 +42,7 @@ namespace ProjectDMG {
             long elapsed = nanoTime();
             int cpuCycles = 0;
             int cyclesThisUpdate = 0;
-            //int dev = 0;
+            int dev = 0;
 
             while (power_switch) {
 
@@ -55,12 +58,43 @@ namespace ProjectDMG {
                         handleInterrupts(mmu, cpu);
                     }
                     cyclesThisUpdate -= Constants.CYCLES_PER_UPDATE;
-                    //dev = 0;
+                    dev = 0;
                 }
                 elapsed = nanoTime();
-                //Console.WriteLine(dev++ +" " +  (elapsed-start)/1000);
+                Console.WriteLine(dev++ +" " +  (elapsed-start)/1000);
                 if ((elapsed - start) < 15700000)
                     Thread.Sleep(1);
+                //Busy waiting :( but sleeping the thread equals to choppy frame rate
+            }
+        }
+
+        public void EXECUTETEST() { // Main Loop Work in progress
+            long start = nanoTime();
+            long elapsed = nanoTime();
+            int cpuCycles = 0;
+            int cyclesThisUpdate = 0;
+            int dev = 0;
+
+            while (power_switch) {
+
+                if ((elapsed - start) >= 16740000) { //nanoseconds per frame
+                    start += 16740000;
+                    while (cyclesThisUpdate < Constants.CYCLES_PER_UPDATE) {
+                        cpuCycles = cpu.Exe(mmu);
+                        cyclesThisUpdate += cpuCycles;
+
+                        timer.update(cpuCycles, mmu);
+                        ppu.update(cpuCycles, mmu);
+                        joypad.update(mmu);
+                        handleInterrupts(mmu, cpu);
+                    }
+                    cyclesThisUpdate -= Constants.CYCLES_PER_UPDATE;
+                    dev = 0;
+                }
+                elapsed = nanoTime();
+                Console.WriteLine(dev++ + " " + (elapsed - start) / 1000);
+                if ((elapsed - start) < 15000000)
+                 Thread.Sleep(1);
                 //Busy waiting :( but sleeping the thread equals to choppy frame rate
             }
         }
