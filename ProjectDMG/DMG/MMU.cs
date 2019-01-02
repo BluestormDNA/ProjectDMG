@@ -11,27 +11,23 @@ namespace ProjectDMG {
         //BootRom
         private byte[] BOOT_ROM = new byte[0x100];
         //DMG Memory Map
-        //private byte[] ROM = new byte[0x8000]; in GamePak
         private byte[] VRAM = new byte[0x2000];
-        //private byte[] ERAM = new byte[0x2000]; in GamePak
         private byte[] WRAM0 = new byte[0x1000];
         private byte[] WRAM1 = new byte[0x1000];
-        //private byte[] WRAM_MIRROR = new byte[0x1E00]; mirrored on WRAM0 and WRAM1
         private byte[] OAM = new byte[0xA0];
-        //private byte[] NOT_USABLE = new byte[0x60];
         public byte[] IO = new byte[0x80];
         private byte[] HRAM = new byte[0x7F];
 
         //BootRom Reg
-        public byte BR { get { return readByte(0xFF50); } set { writeByte(0xFF50, value); } }
+        public byte BR { get { return IO[0x50]; } set { IO[0x50] = value; } }
 
         //Timer IO Regs
-        public byte DIV { get { return readByte(0xFF04); } set { IO[0x04] = value; } } //FF04 - DIV - Divider Register (R/W) bypasses on write always 0
-        public byte TIMA { get { return readByte(0xFF05); } set { writeByte(0xFF05, value); } } //FF05 - TIMA - Timer counter (R/W)
-        public byte TMA { get { return readByte(0xFF06); } set { writeByte(0xFF06, value); } } //FF06 - TMA - Timer Modulo (R/W)
-        public byte TAC { get { return readByte(0xFF07); } set { writeByte(0xFF07, value); } } //FF07 - TAC - Timer Control (R/W)
-        public bool TAC_ENABLED { get { return (TAC & 0x4) != 0; } } // Check if byte 2 is 1
-        public byte TAC_FREQ { get { return (byte)(TAC & 0x3); } } // returns byte 0 and 1
+        public byte DIV { get { return IO[0x04]; } set { IO[0x04] = value; } } //FF04 - DIV - Divider Register (R/W)
+        public byte TIMA { get { return IO[0x05]; } set { IO[0x05] = value; } } //FF05 - TIMA - Timer counter (R/W)
+        public byte TMA { get { return IO[0x06]; } set { IO[0x06] = value; } } //FF06 - TMA - Timer Modulo (R/W)
+        public byte TAC { get { return IO[0x07]; } set { IO[0x07] =  value; } } //FF07 - TAC - Timer Control (R/W)
+        public bool TAC_ENABLED { get { return (IO[0x07] & 0x4) != 0; } } // Check if byte 2 is 1
+        public byte TAC_FREQ { get { return (byte)(IO[0x07] & 0x3); } } // returns byte 0 and 1
 
         //Interrupt IO Flags
         //Bit 0: V-Blank Interrupt Enable(INT 40h)  (1=Enable)
@@ -40,32 +36,31 @@ namespace ProjectDMG {
         //Bit 3: Serial Interrupt Enable(INT 58h)  (1=Enable)
         //Bit 4: Joypad Interrupt Enable(INT 60h)  (1=Enable)
         public byte IE { get; set; }//FFFF - IE - Interrupt Enable (R/W)
-        public byte IF { get { return readByte(0xFF0F); } set { writeByte(0xFF0F, value); } }//FF0F - IF - Interrupt Flag (R/W)
+        public byte IF { get { return IO[0x0F]; } set { IO[0x0F] = value; } }//FF0F - IF - Interrupt Flag (R/W)
 
         //PPU IO Regs
-        public byte LCDC { get { return readByte(0xFF40); } }//FF40 - LCDC - LCD Control (R/W)
-        public byte STAT { get { return readByte(0xFF41); } set { writeByte(0xFF41, value); } }//FF41 - STAT - LCDC Status (R/W)
+        public byte LCDC { get { return IO[0x40]; } }//FF40 - LCDC - LCD Control (R/W)
+        public byte STAT { get { return IO[0x41]; } set { IO[0x41] = value; } }//FF41 - STAT - LCDC Status (R/W)
 
-        public byte SCY { get { return readByte(0xFF42); } }//FF42 - SCY - Scroll Y (R/W)
-        public byte SCX { get { return readByte(0xFF43); } }//FF43 - SCX - Scroll X (R/W)
-        public byte LY { get { return readByte(0xFF44); } set { IO[0x44] = value; } }//FF44 - LY - LCDC Y-Coordinate (R) bypasses on write always 0
-        public byte LYC { get { return readByte(0xFF45); } }//FF45 - LYC - LY Compare(R/W)
-        public byte WY { get { return readByte(0xFF4A); } }//FF4A - WY - Window Y Position (R/W)
-        public byte WX { get { return readByte(0xFF4B); } }//FF4B - WX - Window X Position minus 7 (R/W)
+        public byte SCY { get { return IO[0x42]; } }//FF42 - SCY - Scroll Y (R/W)
+        public byte SCX { get { return IO[0x43]; } }//FF43 - SCX - Scroll X (R/W)
+        public byte LY { get { return IO[0x44]; } set { IO[0x44] = value; } }//FF44 - LY - LCDC Y-Coordinate (R) bypasses on write always 0
+        public byte LYC { get { return IO[0x45]; } }//FF45 - LYC - LY Compare(R/W)
+        public byte WY { get { return IO[0x4A]; } }//FF4A - WY - Window Y Position (R/W)
+        public byte WX { get { return IO[0x4B]; } }//FF4B - WX - Window X Position minus 7 (R/W)
 
-        public byte BGP { get { return readByte(0xFF47); } }//FF47 - BGP - BG Palette Data(R/W) - Non CGB Mode Only
-        public byte OBP0 { get { return readByte(0xFF48); } }//FF48 - OBP0 - Object Palette 0 Data (R/W) - Non CGB Mode Only
-        public byte OBP1 { get { return readByte(0xFF49); } }//FF49 - OBP1 - Object Palette 1 Data (R/W) - Non CGB Mode Only
+        public byte BGP { get { return IO[0x47]; } }//FF47 - BGP - BG Palette Data(R/W) - Non CGB Mode Only
+        public byte OBP0 { get { return IO[0x48]; } }//FF48 - OBP0 - Object Palette 0 Data (R/W) - Non CGB Mode Only
+        public byte OBP1 { get { return IO[0x49]; } }//FF49 - OBP1 - Object Palette 1 Data (R/W) - Non CGB Mode Only
 
         //public byte DMA { get { return readByte(0xFF46); } }//FF46 - DMA - DMA Transfer and Start Address (R/W)
 
-        public byte JOYP { get { return readByte(0xFF00); } set { writeByte(0xFF00, value); } }//FF00 - JOYP
+        public byte JOYP { get { return IO[0x00]; } set { IO[0x00] = value; } }//FF00 - JOYP
 
         public MMU() {
             //FF4D - KEY1 - CGB Mode Only - Prepare Speed Switch
             //HardCoded to FF to identify DMG as 00 is GBC
             IO[0x4D] = 0xFF;
-            //IO[0x00] = 0xCF;
         }
 
         public byte readByte(ushort addr) {
