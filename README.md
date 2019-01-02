@@ -10,7 +10,7 @@ All the CPU opcodes are implemented and it passes Blaarg tests.
 The emulator have accurate cycle timings to the opcode degree. Including Game Boy related hardware design flaws/bugs as the HALT bug, as some software relies on this specific behaviour.
 
 > **Note:**  This is not a M-Cycle or micro-ops accurate emulator.
-> Accuracy and syncronization beetwin the various subsystems of the hardware as the Pixel Processing Unit (PPU), the Memory Managemet Unit (MMU) or the Timer relies on hardcoded fixed values and varies from 4 to 24 CPU cycles depending on the executed Opcode or hardware interrupts.
+> Accuracy and syncronization between the various hardware subsystems as the Pixel Processing Unit (PPU), the Memory Managemet Unit (MMU) or the Timer relies on hardcoded fixed values and varies from 4 to 24 CPU cycles depending on the executed Opcode or hardware interrupts.
 
 ## Compability
 
