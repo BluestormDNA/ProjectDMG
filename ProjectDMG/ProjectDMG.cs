@@ -73,7 +73,7 @@ namespace ProjectDMG {
             long elapsed = nanoTime();
             int cpuCycles = 0;
             int cyclesThisUpdate = 0;
-            int dev = 0;
+            //int dev = 0;
 
             while (power_switch) {
 
@@ -92,7 +92,7 @@ namespace ProjectDMG {
                     dev = 0;
                 }
                 elapsed = nanoTime();
-                Console.WriteLine(dev++ + " " + (elapsed - start) / 1000);
+                //Console.WriteLine(dev++ + " " + (elapsed - start) / 1000);
                 if ((elapsed - start) < 15000000)
                  Thread.Sleep(1);
                 //Busy waiting :( but sleeping the thread equals to choppy frame rate
