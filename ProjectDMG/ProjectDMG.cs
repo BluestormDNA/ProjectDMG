@@ -89,7 +89,7 @@ namespace ProjectDMG {
                         handleInterrupts(mmu, cpu);
                     }
                     cyclesThisUpdate -= Constants.CYCLES_PER_UPDATE;
-                    dev = 0;
+                    //dev = 0;
                 }
                 elapsed = nanoTime();
                 //Console.WriteLine(dev++ + " " + (elapsed - start) / 1000);
