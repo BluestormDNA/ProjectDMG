@@ -127,14 +127,17 @@ namespace ProjectDMG {
         }
 
         private void renderBG(MMU mmu) {
-            byte y = isWindow(mmu) ? (byte)(mmu.LY - mmu.WY) : (byte)(mmu.SCY + mmu.LY);
+            bool isWin = isWindow(mmu);
+            byte LY = mmu.LY;
+
+            byte y = isWin ? (byte)(LY - mmu.WY) : (byte)(mmu.SCY + LY);
             ushort tileRow = (ushort)(y / 8 * 32);
 
             for (int p = 0; p < SCREEN_WIDTH; p++) {
-                byte x = isWindow(mmu) && p >= mmu.WX - 7 ? (byte)(p - (mmu.WX - 7)) : (byte)(p + mmu.SCX); //WX needs -7 Offset
+                byte x = isWin && p >= mmu.WX - 7 ? (byte)(p - (mmu.WX - 7)) : (byte)(p + mmu.SCX); //WX needs -7 Offset
 
                 ushort tileCol = (ushort)(x / 8);
-                ushort tileMap = isWindow(mmu) ? getWindowTileMapAdress(mmu) : getBGTileMapAdress(mmu);
+                ushort tileMap = isWin ? getWindowTileMapAdress(mmu) : getBGTileMapAdress(mmu);
                 ushort tileAdress = (ushort)(tileMap + tileRow + tileCol);
 
                 ushort tileLoc;
@@ -155,7 +158,7 @@ namespace ProjectDMG {
                 byte colorIdThroughtPalette = GetColorIdThroughtPalette(mmu.BGP, colorId);
                 Color color = GetColor(colorIdThroughtPalette);
 
-                bmp.SetPixel(p, mmu.LY, color);
+                bmp.SetPixel(p, LY, color);
             }
 
         }
