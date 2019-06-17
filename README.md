@@ -40,7 +40,7 @@ Game Boy catalog compatibility should be around +95% as the support have focused
 
 Execute the emulator and drag and drop a valid Game Boy rom dump to the GUI. The Game Boy will power on and begin execution.
 
-> **Note:**  A valid Game Boy BootRom/BIOS file must be provided on the root folder of the emulator as: DMG_ROM.bin
+> **Note:**  A valid Game Boy BootRom/BIOS file is not needed anymore. The CPU and MMU defaults to post BootRom init values.
  
 Once power on, Input is mapped as:
 
