@@ -34,7 +34,7 @@ namespace ProjectDMG.DMG.GamePak {
 
         public void WriteERAM(ushort addr, byte value) {
             if (ERAM_ENABLED) {
-               ERAM[(ERAM_OFFSET * RAM_BANK) + addr] = value;
+               ERAM[(ERAM_OFFSET * RAM_BANK) + addr & 0x1FFF] = value;
             }
         }
 

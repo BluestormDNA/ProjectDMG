@@ -28,7 +28,7 @@ namespace ProjectDMG.DMG.GamePak {
             if (ERAM_ENABLED) {
                 switch (RAM_BANK) {
                     case int r when RAM_BANK >= 0x00 && RAM_BANK <= 0x03:
-                        return ERAM[(ERAM_OFFSET * RAM_BANK) + addr];
+                        return ERAM[(ERAM_OFFSET * RAM_BANK) + (addr & 0x1FFF)];
                     case 0x08:
                         return RTC_S;
                     case 0x09:
@@ -52,14 +52,14 @@ namespace ProjectDMG.DMG.GamePak {
         }
 
         public byte ReadHiROM(ushort addr) {
-            return ROM[(ROM_OFFSET * ROM_BANK) + addr];
+            return ROM[(ROM_OFFSET * ROM_BANK) + (addr & 0x3FFF)];
         }
 
         public void WriteERAM(ushort addr, byte value) {
             if (ERAM_ENABLED) {
                 switch (RAM_BANK) {
-                    case int r when RAM_BANK >= 0x00 && RAM_BANK <= 0x03:
-                        ERAM[(ERAM_OFFSET * RAM_BANK) + addr] = value;
+                    case 0x00: case 0x01: case 0x02: case 0x03:
+                        ERAM[(ERAM_OFFSET * RAM_BANK) + (addr & 0x1FFF)] = value;
                         break;
                     case 0x08:
                         RTC_S = value;

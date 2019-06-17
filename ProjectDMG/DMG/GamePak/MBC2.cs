@@ -15,7 +15,7 @@ namespace ProjectDMG.DMG.GamePak {
 
         public byte ReadERAM(ushort addr) {
             if (ERAM_ENABLED){
-                return ERAM[addr];
+                return ERAM[addr & 0x1FFF];
             } else {
                 return 0xFF;
             }
@@ -26,12 +26,12 @@ namespace ProjectDMG.DMG.GamePak {
         }
         
         public byte ReadHiROM(ushort addr) {
-            return ROM[(ROM_OFFSET * ROM_BANK) + addr];
+            return ROM[(ROM_OFFSET * ROM_BANK) + (addr & 0x3FFF)];
         }
 
         public void WriteERAM(ushort addr, byte value) {
             if (ERAM_ENABLED) {
-               ERAM[addr] = value;
+               ERAM[addr & 0x1FFF] = value;
             }
         }
 

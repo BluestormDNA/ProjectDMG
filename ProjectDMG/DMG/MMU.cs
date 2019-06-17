@@ -119,7 +119,7 @@ namespace ProjectDMG {
                     VRAM[addr & 0x1FFF] = b;
                     break;
                 case ushort _ when addr <= 0xBFFF:    // A000-BFFF 8KB External RAM(in cartridge, switchable bank, if any)
-                    gamePak.WriteERAM((ushort)(addr & 0x1FFF), b);
+                    gamePak.WriteERAM(addr, b);
                     break;
                 case ushort _ when addr <= 0xCFFF:    // C000-CFFF 4KB Work RAM Bank 0(WRAM) <br/>
                     WRAM0[addr & 0xFFF] = b;
@@ -198,28 +198,19 @@ namespace ProjectDMG {
         public void loadGamePak(String cartName) {
             byte[] rom = File.ReadAllBytes(cartName);
             switch (rom[0x147]) {
-                case 0:
+                case 0x00:
                     gamePak = new MBC0();
                     break;
-                case 0x01:
-                case 0x02:
-                case 0x03:
+                case 0x01: case 0x02: case 0x03:
                     gamePak = new MBC1();
                     break;
-                case 0x05:
-                case 0x06:
+                case 0x05: case 0x06:
                     gamePak = new MBC2();
                     break;
-                case 0x0F:
-                case 0x10:
-                case 0x11:
-                case 0x12:
-                case 0x13:
+                case 0x0F: case 0x10: case 0x11: case 0x12: case 0x13:
                     gamePak = new MBC3();
                     break;
-                case 0x19:
-                case 0x1A:
-                case 0x1B:
+                case 0x19: case 0x1A: case 0x1B:
                     gamePak = new MBC5();
                     break;
                 default:
