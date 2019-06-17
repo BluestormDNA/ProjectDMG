@@ -11,7 +11,7 @@ namespace ProjectDMG {
         }
 
         private void Form_Load(object sender, EventArgs e) {
-            dmg = new ProjectDMG();
+            dmg = new ProjectDMG(this);
         }
 
         private void Key_Down(object sender, KeyEventArgs e) {

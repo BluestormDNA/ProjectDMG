@@ -1,12 +1,16 @@
 ﻿using ProjectDMG.Utils;
 using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace ProjectDMG {
     public class ProjectDMG {
+
+        Form window;
+
+        public ProjectDMG(Form window) {
+            this.window = window;
+        }
 
         private CPU cpu;
         private MMU mmu;
@@ -16,97 +20,78 @@ namespace ProjectDMG {
 
         public bool power_switch;
 
-        public void POWER_ON(String cartName) {
-            cpu = new CPU();
+        public void POWER_ON(string cartName) {
             mmu = new MMU();
-            ppu = new PPU();
+            cpu = new CPU(mmu);
+            ppu = new PPU(window);
             timer = new TIMER();
             joypad = new JOYPAD();
 
-            mmu.loadBootRom();
             mmu.loadGamePak(cartName);
 
             power_switch = true;
 
-            Thread cpuThread = new Thread(new ThreadStart(EXECUTETEST));
-            cpuThread.Start();
-            //Task t = Task.Factory.StartNew(EXECUTETEST, TaskCreationOptions.LongRunning);
+            Task t = Task.Factory.StartNew(EXECUTE, TaskCreationOptions.LongRunning);
         }
 
         public void POWER_OFF() {
             power_switch = false;
         }
 
-        public void EXECUTE() { // Main Loop Work in progress
+        int fpsCounter;
+
+        public void EXECUTE() {
+            // Main Loop Work in progress
             long start = nanoTime();
-            long elapsed = nanoTime();
+            long elapsed = 0;
             int cpuCycles = 0;
             int cyclesThisUpdate = 0;
-            int dev = 0;
+
+            var timerCounter = new Stopwatch();
+            timerCounter.Start();
 
             while (power_switch) {
 
-                if ((elapsed - start) >= 16740000) { //nanoseconds per frame
-                    start += 16740000;
+
+                if (timerCounter.ElapsedMilliseconds > 1000) {
+                    window.Text = "ProjectDMG | FPS: " + fpsCounter;
+                    timerCounter.Restart();
+                    fpsCounter = 0;
+                }
+
+                //if ((elapsed - start) >= 16740000) { //nanoseconds per frame
+                //    start += 16740000;
                     while (cyclesThisUpdate < Constants.CYCLES_PER_UPDATE) {
-                        cpuCycles = cpu.Exe(mmu);
+                        cpuCycles = cpu.Exe();
                         cyclesThisUpdate += cpuCycles;
 
                         timer.update(cpuCycles, mmu);
                         ppu.update(cpuCycles, mmu);
                         joypad.update(mmu);
-                        handleInterrupts(mmu, cpu);
+                        handleInterrupts();
                     }
+
+                    window.pictureBox.Invalidate();
+                    fpsCounter++;
                     cyclesThisUpdate -= Constants.CYCLES_PER_UPDATE;
-                    dev = 0;
-                }
-                elapsed = nanoTime();
-                Console.WriteLine(dev++ +" " +  (elapsed-start)/1000);
-                if ((elapsed - start) < 15700000)
-                    Thread.Sleep(1);
-                //Busy waiting :( but sleeping the thread equals to choppy frame rate
+                //}
+
+                //elapsed = nanoTime();
+                //if ((elapsed - start) < 15000000) {
+                //    Thread.Sleep(1);
+                //}
             }
         }
 
-        public void EXECUTETEST() { // Main Loop Work in progress
-            long start = nanoTime();
-            long elapsed = nanoTime();
-            int cpuCycles = 0;
-            int cyclesThisUpdate = 0;
-            //int dev = 0;
-
-            while (power_switch) {
-
-                if ((elapsed - start) >= 16740000) { //nanoseconds per frame
-                    start += 16740000;
-                    while (cyclesThisUpdate < Constants.CYCLES_PER_UPDATE) {
-                        cpuCycles = cpu.Exe(mmu);
-                        cyclesThisUpdate += cpuCycles;
-
-                        timer.update(cpuCycles, mmu);
-                        ppu.update(cpuCycles, mmu);
-                        joypad.update(mmu);
-                        handleInterrupts(mmu, cpu);
-                    }
-                    cyclesThisUpdate -= Constants.CYCLES_PER_UPDATE;
-                    //dev = 0;
-                }
-                elapsed = nanoTime();
-                //Console.WriteLine(dev++ + " " + (elapsed - start) / 1000);
-                if ((elapsed - start) < 15000000)
-                 Thread.Sleep(1);
-                //Busy waiting :( but sleeping the thread equals to choppy frame rate
-            }
-        }
-
-        private void handleInterrupts(MMU mmu, CPU cpu) {
-            if ((mmu.IF & 0x1F) != 0) {
-                for (byte i = 0; i < 5; i++) {
-                    if (mmu.isBit(i, mmu.IE) && mmu.isBit(i, mmu.IF)) {
-                        cpu.ExecuteInterrupt(mmu, i);
-                    }
+        private void handleInterrupts() {
+            byte IE = mmu.IE;
+            byte IF = mmu.IF;
+            for (int i = 0; i < 5; i++) {
+                if ((((IE & IF) >> i) & 0x1) == 1) {
+                    cpu.ExecuteInterrupt(i);
                 }
             }
+
             cpu.UpdateIME();
         }
 
@@ -118,6 +103,4 @@ namespace ProjectDMG {
         }
 
     }
-
-
 }
