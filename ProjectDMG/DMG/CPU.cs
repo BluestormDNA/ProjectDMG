@@ -8,15 +8,16 @@ namespace ProjectDMG {
 
     class CPU { // Sharp LR35902 CPU
 
+        private MMU mmu;
         private ushort PC;
         private ushort SP;
 
         private byte A, B, C, D, E, F, H, L;
 
-        private ushort AF { get { return combineRegs(A, F); } set { A = (byte)(value >> 8); F = (byte)(value & 0xF0); } }
-        private ushort BC { get { return combineRegs(B, C); } set { B = (byte)(value >> 8); C = (byte)value; } }
-        private ushort DE { get { return combineRegs(D, E); } set { D = (byte)(value >> 8); E = (byte)value; } }
-        private ushort HL { get { return combineRegs(H, L); } set { H = (byte)(value >> 8); L = (byte)value; } }
+        private ushort AF { get { return (ushort)(A << 8 | F); } set { A = (byte)(value >> 8); F = (byte)(value & 0xF0); } }
+        private ushort BC { get { return (ushort)(B << 8 | C); } set { B = (byte)(value >> 8); C = (byte)value; } }
+        private ushort DE { get { return (ushort)(D << 8 | E); } set { D = (byte)(value >> 8); E = (byte)value; } }
+        private ushort HL { get { return (ushort)(H << 8 | L); } set { H = (byte)(value >> 8); L = (byte)value; } }
 
         private bool FlagZ { get { return (F & 0x80) != 0; } set { F = value ? (byte)(F | 0x80) : (byte)(F & ~0x80); } }
         private bool FlagN { get { return (F & 0x40) != 0; } set { F = value ? (byte)(F | 0x40) : (byte)(F & ~0x40); } }
@@ -27,16 +28,26 @@ namespace ProjectDMG {
         private bool IMEEnabler;
         private bool HALTED;
         private bool HALT_BUG;
-        private int cycles = 8;
+        private int cycles;
 
-        public int Exe(MMU mmu) {
+        public CPU(MMU mmu) {
+            this.mmu = mmu;
+            AF = 0x01B0;
+            BC = 0x0013;
+            DE = 0x00D8;
+            HL = 0x014d;
+            SP = 0xFFFE;
+            PC = 0x100;
+        }
+
+        public int Exe() {
 
             byte opcode = mmu.readByte(PC++);
             if (HALT_BUG) {
                 PC--;
                 HALT_BUG = false;
             }
-            //debug(mmu, opcode);
+            //debug(opcode);
             cycles = 0;
 
             switch (opcode) {
@@ -83,7 +94,7 @@ namespace ProjectDMG {
                     A = (byte)((A << 1) | (prevC ? 1 : 0));
                     break;
 
-                case 0x18: JR(mmu, true);                       break; //JR R8       2 12   ----
+                case 0x18: JR(true);                       break; //JR R8       2 12   ----
                 case 0x19: DAD(DE);                             break; //ADD HL,DE   1 8    -0HC
                 case 0x1A: A = mmu.readByte(DE);                break; //LD A,(DE)   1 8    ----
                 case 0x1B: DE -= 1;                             break; //INC DE      1 8    ----
@@ -98,7 +109,7 @@ namespace ProjectDMG {
                     A = (byte)((A >> 1) | (preC ? 0x80 : 0));
                     break;
 
-                case 0x20: JR(mmu, !FlagZ);                     break; //JR NZ R8    2 12/8 ---- 
+                case 0x20: JR(!FlagZ);                     break; //JR NZ R8    2 12/8 ---- 
                 case 0x21: HL = mmu.readWord(PC); PC += 2;      break; //LD HL,D16   3 12   ----
                 case 0x22: mmu.writeByte(HL++, A);              break; //LD (HL+),A  1 8    ----
                 case 0x23: HL += 1;                             break; //INC HL      1 8    ----
@@ -112,13 +123,13 @@ namespace ProjectDMG {
                         if (FlagH) { A -= 0x6; }
                     } else { // add
                         if (FlagC || (A > 0x99)) { A += 0x60; FlagC = true; }
-                        if (FlagH || (A & 0x0F) > 0x9) { A += 0x6; }
+                        if (FlagH || (A & 0xF) > 0x9) { A += 0x6; }
                     }
                     SetFlagZ(A);
                     FlagH = false;
                     break;
 
-                case 0x28: JR(mmu, FlagZ);                                 break; //JR Z R8    2 12/8  ----
+                case 0x28: JR(FlagZ);                                 break; //JR Z R8    2 12/8  ----
                 case 0x29: DAD(HL);                                        break; //ADD HL,HL  1 8     -0HC
                 case 0x2A: A = mmu.readByte(HL++);                         break; //LD A (HL+) 1 8     ----
                 case 0x2B: HL -= 1;                                        break; //DEC HL     1 4     ----
@@ -127,7 +138,7 @@ namespace ProjectDMG {
                 case 0x2E: L = mmu.readByte(PC); PC += 1; ;                break; //LD L,D8    2 8     ----
                 case 0x2F: A = (byte)~A; FlagN = true; FlagH = true;       break; //CPL	       1 4     -11-
 
-                case 0x30: JR(mmu, !FlagC);                                break; //JR NC R8   2 12/8  ----
+                case 0x30: JR(!FlagC);                                break; //JR NC R8   2 12/8  ----
                 case 0x31: SP = mmu.readWord(PC); PC += 2; ;               break; //LD SP,D16  3 12    ----
                 case 0x32: mmu.writeByte(HL--, A);                         break; //LD (HL-),A 1 8     ----
                 case 0x33: SP += 1;                                        break; //INC SP     1 8     ----
@@ -136,7 +147,7 @@ namespace ProjectDMG {
                 case 0x36: mmu.writeByte(HL, mmu.readByte(PC)); PC += 1;   break; //LD (HL),D8 2 12    ----
                 case 0x37: FlagC = true; FlagN = false; FlagH = false;     break; //SCF	       1 4     -001
 
-                case 0x38: JR(mmu, FlagC);                                 break; //JR C R8    2 12/8  ----
+                case 0x38: JR(FlagC);                                 break; //JR C R8    2 12/8  ----
                 case 0x39: DAD(SP);                                        break; //ADD HL,SP  1 8     -0HC
                 case 0x3A: A = mmu.readByte(HL--);                         break; //LD A (HL-) 1 8     ----
                 case 0x3B: SP -= 1;                                        break; //DEC SP     1 8     ----
@@ -205,7 +216,7 @@ namespace ProjectDMG {
                 case 0x73: mmu.writeByte(HL, E);  break; //LD (HL),E	1 8	   ----
                 case 0x74: mmu.writeByte(HL, H);  break; //LD (HL),H	1 8	   ----
                 case 0x75: mmu.writeByte(HL, L);  break; //LD (HL),L	1 8	   ----
-                case 0x76: HALT(mmu);             break; //HLT	        1 4    ----
+                case 0x76: HALT();             break; //HLT	        1 4    ----
                 case 0x77: mmu.writeByte(HL, A);  break; //LD (HL),A	1 8    ----
                                                  
                 case 0x78: A = B;                 break; //LD A,B	    1 4    ----
@@ -289,77 +300,77 @@ namespace ProjectDMG {
                 case 0xBE: CP(mmu.readByte(HL));  break; //CP M     	1 8    Z1HC
                 case 0xBF: CP(A);                 break; //CP A     	1 4    Z1HC
 
-                case 0xC0: RETURN(mmu, !FlagZ);             break; //RET NZ	     1 20/8  ----
-                case 0xC1: BC = POP(mmu);                   break; //POP BC      1 12    ----
-                case 0xC2: JUMP(mmu, !FlagZ);               break; //JP NZ,A16   3 16/12 ----
-                case 0xC3: JUMP(mmu, true);                 break; //JP A16      3 16    ----
-                case 0xC4: CALL(mmu, !FlagZ);               break; //CALL NZ A16 3 24/12 ----
-                case 0xC5: PUSH(mmu, BC);                   break; //PUSH BC     1 16    ----
+                case 0xC0: RETURN(!FlagZ);             break; //RET NZ	     1 20/8  ----
+                case 0xC1: BC = POP();                   break; //POP BC      1 12    ----
+                case 0xC2: JUMP(!FlagZ);               break; //JP NZ,A16   3 16/12 ----
+                case 0xC3: JUMP(true);                 break; //JP A16      3 16    ----
+                case 0xC4: CALL(!FlagZ);               break; //CALL NZ A16 3 24/12 ----
+                case 0xC5: PUSH(BC);                   break; //PUSH BC     1 16    ----
                 case 0xC6: ADD(mmu.readByte(PC)); PC += 1;  break; //ADD A,D8    2 8     Z0HC
-                case 0xC7: RST(mmu, 0x0);                   break; //RST 0       1 16    ----
+                case 0xC7: RST(0x0);                   break; //RST 0       1 16    ----
 
-                case 0xC8: RETURN(mmu, FlagZ);              break; //RET Z       1 20/8  ----
-                case 0xC9: RETURN(mmu, true);               break; //RET         1 16    ----
-                case 0xCA: JUMP(mmu, FlagZ);                break; //JP Z,A16    3 16/12 ----
-                case 0xCB: PREFIX_CB(mmu, mmu.readByte(PC++));      break; //PREFIX CB OPCODE TABLE
-                case 0xCC: CALL(mmu, FlagZ);                break; //CALL Z,A16  3 24/12 ----
-                case 0xCD: CALL(mmu, true);                 break; //CALL A16    3 24    ----
+                case 0xC8: RETURN(FlagZ);              break; //RET Z       1 20/8  ----
+                case 0xC9: RETURN(true);               break; //RET         1 16    ----
+                case 0xCA: JUMP(FlagZ);                break; //JP Z,A16    3 16/12 ----
+                case 0xCB: PREFIX_CB(mmu.readByte(PC++));      break; //PREFIX CB OPCODE TABLE
+                case 0xCC: CALL(FlagZ);                break; //CALL Z,A16  3 24/12 ----
+                case 0xCD: CALL(true);                 break; //CALL A16    3 24    ----
                 case 0xCE: ADC(mmu.readByte(PC)); PC += 1;  break; //ADC A,D8    2 8     ----
-                case 0xCF: RST(mmu, 0x8);                   break; //RST 1 08    1 16    ----
+                case 0xCF: RST(0x8);                   break; //RST 1 08    1 16    ----
 
-                case 0xD0: RETURN(mmu, !FlagC);             break; //RET NC      1 20/8  ----
-                case 0xD1: DE = POP(mmu);                   break; //POP DE      1 12    ----
-                case 0xD2: JUMP(mmu, !FlagC);               break; //JP NC,A16   3 16/12 ----
+                case 0xD0: RETURN(!FlagC);             break; //RET NC      1 20/8  ----
+                case 0xD1: DE = POP();                   break; //POP DE      1 12    ----
+                case 0xD2: JUMP(!FlagC);               break; //JP NC,A16   3 16/12 ----
                 //case 0xD3:                                break; //Illegal Opcode
-                case 0xD4: CALL(mmu, !FlagC);               break; //CALL NC,A16 3 24/12 ----
-                case 0xD5: PUSH(mmu, DE);                   break; //PUSH DE     1 16    ----
+                case 0xD4: CALL(!FlagC);               break; //CALL NC,A16 3 24/12 ----
+                case 0xD5: PUSH(DE);                   break; //PUSH DE     1 16    ----
                 case 0xD6: SUB(mmu.readByte(PC)); PC += 1;  break; //SUB D8      2 8     ----
-                case 0xD7: RST(mmu, 0x10);                  break; //RST 2 10    1 16    ----
+                case 0xD7: RST(0x10);                  break; //RST 2 10    1 16    ----
 
-                case 0xD8: RETURN(mmu, FlagC);              break; //RET C       1 20/8  ----
-                case 0xD9: RETURN(mmu, true); IME = true;   break; //RETI        1 16    ----
-                case 0xDA: JUMP(mmu, FlagC);                break; //JP C,A16    3 16/12 ----
+                case 0xD8: RETURN(FlagC);              break; //RET C       1 20/8  ----
+                case 0xD9: RETURN(true); IME = true;   break; //RETI        1 16    ----
+                case 0xDA: JUMP(FlagC);                break; //JP C,A16    3 16/12 ----
                 //case 0xDB:                                break; //Illegal Opcode
-                case 0xDC: CALL(mmu, FlagC);                break; //Call C,A16  3 24/12 ----
+                case 0xDC: CALL(FlagC);                break; //Call C,A16  3 24/12 ----
                 //case 0xDD:                                break; //Illegal Opcode
                 case 0xDE: SBC(mmu.readByte(PC)); PC += 1;  break; //SBC A,A8    2 8     Z1HC
-                case 0xDF: RST(mmu, 0x18);                  break; //RST 3 18    1 16    ----
+                case 0xDF: RST(0x18);                  break; //RST 3 18    1 16    ----
 
                 case 0xE0: mmu.writeByte((ushort)(0xFF00 + mmu.readByte(PC)), A); PC += 1;  break; //LDH (A8),A 2 12 ----
-                case 0xE1: HL = POP(mmu);                   break; //POP HL      1 12    ----
+                case 0xE1: HL = POP();                   break; //POP HL      1 12    ----
                 case 0xE2: mmu.writeByte((ushort)(0xFF00 + C), A);   break; //LD (C),A   1 8  ----
                 //case 0xE3:                                break; //Illegal Opcode
                 //case 0xE4:                                break; //Illegal Opcode
-                case 0xE5: PUSH(mmu, HL);                   break; //PUSH HL     1 16    ----
+                case 0xE5: PUSH(HL);                   break; //PUSH HL     1 16    ----
                 case 0xE6: AND(mmu.readByte(PC)); PC += 1;  break; //AND D8      2 8     Z010
-                case 0xE7: RST(mmu, 0x20);                  break; //RST 4 20    1 16    ----
+                case 0xE7: RST(0x20);                  break; //RST 4 20    1 16    ----
 
-                case 0xE8: SP = DADr8(SP, mmu);             break; //ADD SP,R8   2 16    00HC
+                case 0xE8: SP = DADr8(SP);             break; //ADD SP,R8   2 16    00HC
                 case 0xE9: PC = HL;                         break; //JP (HL)     1 4     ----
                 case 0xEA: mmu.writeByte(mmu.readWord(PC), A); PC += 2;                     break; //LD (A16),A 3 16 ----
                 //case 0xEB:                                break; //Illegal Opcode
                 //case 0xEC:                                break; //Illegal Opcode
                 //case 0xED:                                break; //Illegal Opcode
                 case 0xEE: XOR(mmu.readByte(PC)); PC += 1;  break; //XOR D8      2 8     Z000
-                case 0xEF: RST(mmu, 0x28);                  break; //RST 5 28    1 16    ----
+                case 0xEF: RST(0x28);                  break; //RST 5 28    1 16    ----
 
                 case 0xF0: A = mmu.readByte((ushort)(0xFF00 + mmu.readByte(PC))); PC += 1;  break; //LDH A,(A8)  2 12    ----
-                case 0xF1: AF = POP(mmu);                   break; //POP AF      1 12    ZNHC
+                case 0xF1: AF = POP();                   break; //POP AF      1 12    ZNHC
                 case 0xF2: A = mmu.readByte((ushort)(0xFF00 + C));  break; //LD A,(C)    1 8     ----
                 case 0xF3: IME = false;                     break; //DI          1 4     ----
                 //case 0xF4:                                break; //Illegal Opcode
-                case 0xF5: PUSH(mmu, AF);                   break; //PUSH AF     1 16    ----
+                case 0xF5: PUSH(AF);                   break; //PUSH AF     1 16    ----
                 case 0xF6: OR(mmu.readByte(PC)); PC += 1;   break; //OR D8       2 8     Z000
-                case 0xF7: RST(mmu, 0x30);                  break; //RST 6 30    1 16    ----
+                case 0xF7: RST(0x30);                  break; //RST 6 30    1 16    ----
 
-                case 0xF8: HL = DADr8(SP, mmu);             break; //LD HL,SP+R8 2 12    00HC
+                case 0xF8: HL = DADr8(SP);             break; //LD HL,SP+R8 2 12    00HC
                 case 0xF9: SP = HL;                         break; //LD SP,HL    1 8     ----
                 case 0xFA: A = mmu.readByte(mmu.readWord(PC)); PC += 2;   break; //LD A,(A16)  3 16    ----
                 case 0xFB: IMEEnabler = true;               break; //IE          1 4     ----
                 //case 0xFC:                                break; //Illegal Opcode
                 //case 0xFD:                                break; //Illegal Opcode
                 case 0xFE: CP(mmu.readByte(PC)); PC += 1;   break; //CP D8       2 8     Z1HC
-                case 0xFF: RST(mmu, 0x38);                  break; //RST 7 38    1 16    ----
+                case 0xFF: RST(0x38);                  break; //RST 7 38    1 16    ----
 
                 default: warnUnsupportedOpcode(opcode);     break;
             }
@@ -367,7 +378,7 @@ namespace ProjectDMG {
             return cycles;
         }
 
-        private void PREFIX_CB(MMU mmu, byte opcode) {
+        private void PREFIX_CB(byte opcode) {
             switch (opcode) {
                 case 0x00: B = RLC(B);                                  break; //RLC B    2   8   Z00C
                 case 0x01: C = RLC(C);                                  break; //RLC C    2   8   Z00C
@@ -750,7 +761,7 @@ namespace ProjectDMG {
             return result;
         }
 
-        private ushort DADr8(ushort w, MMU mmu) {//00HC | warning r8 is signed!
+        private ushort DADr8(ushort w) {//00HC | warning r8 is signed!
             byte b = mmu.readByte(PC++);
             FlagZ = false;
             FlagN = false;
@@ -759,7 +770,7 @@ namespace ProjectDMG {
             return (ushort)(w + (sbyte)b);
         }
 
-        private void JR(MMU mmu, bool flag) {
+        private void JR(bool flag) {
             if (flag) {
                 sbyte sb = (sbyte)mmu.readByte(PC);
                 PC = (ushort)(PC + sb);
@@ -876,18 +887,18 @@ namespace ProjectDMG {
             HL = (ushort)result;
         }
 
-        private void RETURN(MMU mmu, bool flag) {
+        private void RETURN(bool flag) {
             if (flag) {
-                PC = POP(mmu);
+                PC = POP();
                 cycles += Cycles.RETURN_TRUE;
             } else {
                 cycles += Cycles.RETURN_FALSE;
             }
         }
 
-        private void CALL(MMU mmu, bool flag) {
+        private void CALL(bool flag) {
             if (flag) {
-                PUSH(mmu, (ushort)(PC + 2));
+                PUSH((ushort)(PC + 2));
                 PC = mmu.readWord(PC);
                 cycles += Cycles.CALL_TRUE;
             } else {
@@ -896,7 +907,7 @@ namespace ProjectDMG {
             }
         }
 
-        private void JUMP(MMU mmu, bool flag) {
+        private void JUMP(bool flag) {
             if (flag) {
                 PC = mmu.readWord(PC);
                 cycles += Cycles.JUMP_TRUE;
@@ -906,13 +917,13 @@ namespace ProjectDMG {
             }
         }
 
-        private void RST(MMU mmu, byte b) {
-            PUSH(mmu, PC);
+        private void RST(byte b) {
+            PUSH(PC);
             PC = b;
         }
 
 
-        private void HALT(MMU mmu) {
+        private void HALT() {
             if (!IME) {
                 if ((mmu.IE & mmu.IF & 0x1F) == 0) {
                     HALTED = true;
@@ -928,34 +939,34 @@ namespace ProjectDMG {
             IMEEnabler = false;
         }
 
-        public void ExecuteInterrupt(MMU mmu, byte b) {
+        public void ExecuteInterrupt(int b) {
             if (HALTED) {
                 PC++;
                 HALTED = false;
             }
             if (IME) {
-                PUSH(mmu, PC);
+                PUSH(PC);
                 PC = (ushort)(0x40 + (8 * b));
                 IME = false;
                 mmu.IF = mmu.bitClear(b, mmu.IF);
             }
         }
 
-        private void PUSH(MMU mmu, ushort w) {// (SP - 1) < -PC.hi; (SP - 2) < -PC.lo
+        private void PUSH(ushort w) {// (SP - 1) < -PC.hi; (SP - 2) < -PC.lo
             SP -= 2;
             mmu.writeWord(SP, w);
-            //Console.WriteLine("stack PUSH " + w.ToString("x4") + " reading: " + mmu.readWord(SP).ToString("x4"));
         }
 
-        private ushort POP(MMU mmu) {
+        private ushort POP() {
             ushort ret = mmu.readWord(SP);
-            //Console.WriteLine("stack POP = " + ret.ToString("x4") + " SP = " + SP.ToString("x4") + " reading: " + mmu.readWord(SP).ToString("x4"));
             SP += 2;
-            return ret;
-        }
+            //byte l = mmu.readByte(++SP);
+            //byte h = mmu.readByte(++SP);
+            //ushort ret = (ushort)(h << 8 | l);
+            //Console.WriteLine("stack POP = " + ret.ToString("x4") + " SP = " + SP.ToString("x4") + " reading: " + mmu.readWord(SP).ToString("x4") + "ret = " /*+ ((ushort)(h << 8 | l)).ToString("x4")*/);
 
-        private ushort combineRegs(byte b1, byte b2) {
-            return (ushort)(b1 << 8 | b2);
+
+            return ret;
         }
 
         private void SetFlagZ(int b) {
@@ -991,8 +1002,8 @@ namespace ProjectDMG {
             Console.WriteLine((PC - 1).ToString("x4") + " Unsupported operation " + opcode.ToString("x2"));
         }
 
-        public int dev;
-        private void debug(MMU mmu, byte opcode) {
+        private int dev;
+        private void debug(byte opcode) {
             dev += cycles;
             if (dev >= 23440108 /*&& PC == 0x35A*/) //0x100 23440108
                 Console.WriteLine("Cycle " + dev + " PC " + (PC - 1).ToString("x4") + " Stack: " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
