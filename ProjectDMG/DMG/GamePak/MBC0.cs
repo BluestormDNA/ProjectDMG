@@ -7,10 +7,6 @@
             this.ROM = ROM;
         }
 
-        public byte ReadByte(ushort addr) {
-            return ROM[addr];
-        }
-
         public byte ReadERAM(ushort addr) {
             return 0xFF; //MBC0 dosn't have ERAM
         }
@@ -20,7 +16,7 @@
         }
         
         public byte ReadHiROM(ushort addr){
-            return ROM[addr + 0x4000];
+            return ROM[addr];
         }
 
         public void WriteERAM(ushort addr, byte value) {
