@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using static ProjectDMG.Utils.BitOps;
 
 namespace ProjectDMG {
 
@@ -948,7 +945,7 @@ namespace ProjectDMG {
                 PUSH(PC);
                 PC = (ushort)(0x40 + (8 * b));
                 IME = false;
-                mmu.IF = mmu.bitClear(b, mmu.IF);
+                mmu.IF = bitClear(b, mmu.IF);
             }
         }
 

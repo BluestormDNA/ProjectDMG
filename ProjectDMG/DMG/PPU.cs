@@ -1,5 +1,5 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
+using static ProjectDMG.Utils.BitOps;
 
 namespace ProjectDMG {
     public class PPU {
@@ -15,15 +15,14 @@ namespace ProjectDMG {
         private const int VBLANK_INTERRUPT = 0;
         private const int LCD_INTERRUPT = 1;
 
-        private int[] color = new int[]{0x00FFFFFF, 0x00808080, 0x00404040, 0};
+        private int[] color = new int[] { 0x00FFFFFF, 0x00808080, 0x00404040, 0 };
 
         public DirectBitmap bmp;
         private int scanlineCounter;
 
         private Form window;
 
-        public PPU(Form window)
-        {
+        public PPU(Form window) {
             this.window = window;
             bmp = new DirectBitmap();
             window.pictureBox.Image = bmp.Bitmap;
@@ -31,9 +30,9 @@ namespace ProjectDMG {
 
         public void update(int cycles, MMU mmu) {
             scanlineCounter += cycles;
-            byte currentMode = (byte)(mmu.STAT & 0b00000011); //Current Mode Mask
+            byte currentMode = (byte)(mmu.STAT & 0x3); //Current Mode Mask
 
-            if (isLCDEnabled(mmu)) {
+            if (isLCDEnabled(mmu.LCDC)) {
                 switch (currentMode) {
                     case 2: //Accessing OAM - Mode 2 (80 cycles)
                         if (scanlineCounter >= OAM_CYCLES) {
@@ -76,57 +75,49 @@ namespace ProjectDMG {
                 }
 
                 if (mmu.LY == mmu.LYC) { //handle coincidence Flag
-                    mmu.STAT = mmu.bitSet(2, mmu.STAT);
-                    if (mmu.isBit(6, mmu.STAT)) {
+                    mmu.STAT = bitSet(2, mmu.STAT);
+                    if (isBit(6, mmu.STAT)) {
                         mmu.requestInterrupt(LCD_INTERRUPT);
                     }
                 } else {
-                    mmu.STAT = mmu.bitClear(2, mmu.STAT);
+                    mmu.STAT = bitClear(2, mmu.STAT);
                 }
 
             } else { //LCD Disabled
                 scanlineCounter = 0;
                 mmu.LY = 0;
-                mmu.STAT = (byte)(mmu.STAT & 0b11111100);
-                //mmu.STAT = (byte)(mmu.STAT | 0x2); //Forces Mode 2 OAM Start
+                mmu.STAT = (byte)(mmu.STAT & ~0x3);
             }
         }
 
         private void changeSTATMode(int mode, MMU mmu) {
-            switch (mode) {
-                case 2: //Accessing OAM - Mode 2 (80 cycles)
-                    mmu.STAT = mmu.bitSet(1, mmu.STAT);
-                    mmu.STAT = mmu.bitClear(0, mmu.STAT);
-                    if (mmu.isBit(5, mmu.STAT)) { // Bit 5 - Mode 2 OAM Interrupt         (1=Enable) (Read/Write)
-                        mmu.requestInterrupt(LCD_INTERRUPT);
-                    }
-                    break;
-                case 3: //Accessing VRAM - Mode 3 (172 cycles) Total M2+M3 = 252 Cycles
-                    mmu.STAT = mmu.bitSet(1, mmu.STAT);
-                    mmu.STAT = mmu.bitSet(0, mmu.STAT);
-                    break;
-                case 0: //HBLANK - Mode 0 (204 cycles) Total M2+M3+M0 = 456 Cycles
-                    mmu.STAT = mmu.bitClear(1, mmu.STAT);
-                    mmu.STAT = mmu.bitClear(0, mmu.STAT);
-                    if (mmu.isBit(3, mmu.STAT)) { // Bit 3 - Mode 0 H-Blank Interrupt     (1=Enable) (Read/Write)
-                        mmu.requestInterrupt(LCD_INTERRUPT);
-                    }
-                    break;
-                case 1: //VBLANK - Mode 1 (4560 cycles - 10 lines)
-                    mmu.STAT = mmu.bitClear(1, mmu.STAT);
-                    mmu.STAT = mmu.bitSet(0, mmu.STAT);
-                    if (mmu.isBit(4, mmu.STAT)) { // Bit 4 - Mode 1 V-Blank Interrupt     (1=Enable) (Read/Write)
-                        mmu.requestInterrupt(LCD_INTERRUPT);
-                    }
-                    break;
+            byte STAT = (byte)(mmu.STAT & ~0x3);
+            mmu.STAT = (byte)(STAT | mode);
+            //Accessing OAM - Mode 2 (80 cycles)
+            if (mode == 2 && isBit(5, STAT)) { // Bit 5 - Mode 2 OAM Interrupt         (1=Enable) (Read/Write)
+                mmu.requestInterrupt(LCD_INTERRUPT);
             }
+
+            //case 3: //Accessing VRAM - Mode 3 (172 cycles) Total M2+M3 = 252 Cycles
+
+            //HBLANK - Mode 0 (204 cycles) Total M2+M3+M0 = 456 Cycles
+            else if (mode == 0 && isBit(3, STAT)) { // Bit 3 - Mode 0 H-Blank Interrupt     (1=Enable) (Read/Write)
+                mmu.requestInterrupt(LCD_INTERRUPT);
+            }
+
+            //VBLANK - Mode 1 (4560 cycles - 10 lines)
+            else if (mode == 1 && isBit(4, STAT)) { // Bit 4 - Mode 1 V-Blank Interrupt     (1=Enable) (Read/Write)
+                mmu.requestInterrupt(LCD_INTERRUPT);
+            }
+
         }
 
         private void drawScanLine(MMU mmu) {
-            if (mmu.isBit(0, mmu.LCDC)) { //Bit 0 - BG Display (0=Off, 1=On)
+            byte LCDC = mmu.LCDC;
+            if (isBit(0, LCDC)) { //Bit 0 - BG Display (0=Off, 1=On)
                 renderBG(mmu);
             }
-            if (mmu.isBit(1, mmu.LCDC)) { //Bit 1 - OBJ (Sprite) Display Enable
+            if (isBit(1, LCDC)) { //Bit 1 - OBJ (Sprite) Display Enable
                 renderSprites(mmu);
             }
         }
@@ -138,28 +129,28 @@ namespace ProjectDMG {
             byte LCDC = mmu.LCDC;
             byte SCY = mmu.SCY;
             byte SCX = mmu.SCX;
-            bool isWin = isWindow(mmu, LCDC, WY, LY);
+            bool isWin = isWindow(LCDC, WY, LY);
 
             byte y = isWin ? (byte)(LY - WY) : (byte)(SCY + LY);
             byte tileLine = (byte)((y & 7) * 2);
 
             ushort tileRow = (ushort)(y / 8 * 32);
-            ushort tileMap = isWin ? getWindowTileMapAdress(mmu, LCDC) : getBGTileMapAdress(mmu, LCDC);
+            ushort tileMap = isWin ? getWindowTileMapAdress(LCDC) : getBGTileMapAdress(LCDC);
 
             byte hi = 0;
             byte lo = 0;
 
             for (int p = 0; p < SCREEN_WIDTH; p++) {
                 byte x = isWin && p >= WX ? (byte)(p - WX) : (byte)(p + SCX);
-                if((p & 0x7 )== 0 || ((p + SCX) & 0x7) == 0) {
+                if ((p & 0x7) == 0 || ((p + SCX) & 0x7) == 0) {
                     ushort tileCol = (ushort)(x / 8);
                     ushort tileAdress = (ushort)(tileMap + tileRow + tileCol);
 
                     ushort tileLoc;
-                    if (isSignedAdress(mmu, LCDC)) {
-                        tileLoc = (ushort)(getTileDataAdress(mmu, LCDC) + mmu.readByte(tileAdress) * 16);
+                    if (isSignedAdress(LCDC)) {
+                        tileLoc = (ushort)(getTileDataAdress(LCDC) + mmu.readByte(tileAdress) * 16);
                     } else {
-                        tileLoc = (ushort)(getTileDataAdress(mmu, LCDC) + ((sbyte)mmu.readByte(tileAdress) + 128) * 16);
+                        tileLoc = (ushort)(getTileDataAdress(LCDC) + ((sbyte)mmu.readByte(tileAdress) + 128) * 16);
                     }
 
                     lo = mmu.readByte((ushort)(tileLoc + tileLine));
@@ -188,39 +179,27 @@ namespace ProjectDMG {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool isSignedAdress(MMU mmu, byte LCDC) {
+        private bool isSignedAdress(byte LCDC) {
             //Bit 4 - BG & Window Tile Data Select   (0=8800-97FF, 1=8000-8FFF)
-            return mmu.isBit(4, LCDC);
+            return isBit(4, LCDC);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ushort getBGTileMapAdress(MMU mmu, byte LCDC) {
+        private ushort getBGTileMapAdress(byte LCDC) {
             //Bit 3 - BG Tile Map Display Select     (0=9800-9BFF, 1=9C00-9FFF)
-            if (mmu.isBit(3, LCDC)) {
-                return 0x9C00;
-            } else {
-                return 0x9800;
-            }
+            return isBit(3, LCDC) ? (ushort)0x9C00 : (ushort)0x9800;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ushort getWindowTileMapAdress(MMU mmu, byte LCDC) {
+        private ushort getWindowTileMapAdress(byte LCDC) {
             //Bit 6 - Window Tile Map Display Select(0 = 9800 - 9BFF, 1 = 9C00 - 9FFF)
-            if (mmu.isBit(6, LCDC)) {
-                return 0x9C00;
-            } else {
-                return 0x9800;
-            }
+            return isBit(6, LCDC) ? (ushort)0x9C00 : (ushort)0x9800;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ushort getTileDataAdress(MMU mmu, byte LCDC) {
+        private ushort getTileDataAdress(byte LCDC) {
             //Bit 4 - BG & Window Tile Data Select   (0=8800-97FF, 1=8000-8FFF)
-            if (mmu.isBit(4, LCDC)) {
-                return 0x8000;
-            } else {
-                return 0x8800; //Signed Area
-            }
+            return isBit(4, LCDC) ? (ushort)0x8000 : (ushort)0x8800; //0x8800 signed area
         }
 
         private void renderSprites(MMU mmu) {
@@ -236,17 +215,17 @@ namespace ProjectDMG {
                 //Byte3 - Attributes/Flags:
                 byte attr = mmu.readByte((ushort)(0xFE00 + i + 3));
 
-                if ((LY >= y) && (LY < (y + spriteSize(mmu, LCDC)))) {
-                    byte palette = mmu.isBit(4, attr) ? mmu.OBP1 : mmu.OBP0; //Bit4   Palette number  **Non CGB Mode Only** (0=OBP0, 1=OBP1)
+                if ((LY >= y) && (LY < (y + spriteSize(LCDC)))) {
+                    byte palette = isBit(4, attr) ? mmu.OBP1 : mmu.OBP0; //Bit4   Palette number  **Non CGB Mode Only** (0=OBP0, 1=OBP1)
 
-                    byte tileRow = isYFlipped(attr, mmu) ? (byte)(spriteSize(mmu, LCDC) - 1 - (LY - y)) : (byte)(LY - y);
+                    byte tileRow = isYFlipped(attr) ? (byte)(spriteSize(LCDC) - 1 - (LY - y)) : (byte)(LY - y);
 
                     ushort tileddress = (ushort)(0x8000 + (tile * 16) + (tileRow * 2));
                     byte lo = mmu.readByte(tileddress);
                     byte hi = mmu.readByte((ushort)(tileddress + 1));
 
                     for (int p = 0; p < 8; p++) {
-                        int IdPos = isXFlipped(attr, mmu) ? p : 7 - p;
+                        int IdPos = isXFlipped(attr) ? p : 7 - p;
                         int colorId = GetColorIdBits(IdPos, lo, hi);
                         byte colorIdThroughtPalette = (byte)GetColorIdThroughtPalette(palette, colorId);
 
@@ -280,27 +259,27 @@ namespace ProjectDMG {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool isLCDEnabled(MMU mmu) {
+        private bool isLCDEnabled(byte LCDC) {
             //Bit 7 - LCD Display Enable
-            return mmu.isBit(7, mmu.LCDC);
+            return isBit(7, LCDC);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int spriteSize(MMU mmu, byte LCDC) {
+        private int spriteSize(byte LCDC) {
             //Bit 2 - OBJ (Sprite) Size (0=8x8, 1=8x16)
-            return mmu.isBit(2, LCDC) ? 16 : 8;
+            return isBit(2, LCDC) ? 16 : 8;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool isXFlipped(int attr, MMU mmu) {
+        private bool isXFlipped(int attr) {
             //Bit5   X flip(0 = Normal, 1 = Horizontally mirrored)
-            return mmu.isBit(5, attr);
+            return isBit(5, attr);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool isYFlipped(byte attr, MMU mmu) {
+        private bool isYFlipped(byte attr) {
             //Bit6 Y flip(0 = Normal, 1 = Vertically mirrored)
-            return mmu.isBit(6, attr);
+            return isBit(6, attr);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -309,9 +288,9 @@ namespace ProjectDMG {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool isWindow(MMU mmu, byte LCDC, byte WY, byte LY) {
+        private bool isWindow(byte LCDC, byte WY, byte LY) {
             //Bit 5 - Window Display Enable (0=Off, 1=On)
-            return mmu.isBit(5, LCDC) && WY <= LY;
+            return isBit(5, LCDC) && WY <= LY;
         }
     }
 }

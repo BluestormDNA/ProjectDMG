@@ -1,4 +1,5 @@
 ﻿using System.Windows.Forms;
+using static ProjectDMG.Utils.BitOps;
 
 namespace ProjectDMG {
     public class JOYPAD {
@@ -28,15 +29,16 @@ namespace ProjectDMG {
         }
 
         public void update(MMU mmu) {
-            if(!mmu.isBit(4, mmu.JOYP)) {
-                mmu.JOYP = (byte)((mmu.JOYP & 0xF0) | pad);
+            byte JOYP = mmu.JOYP;
+            if(!isBit(4, JOYP)) {
+                mmu.JOYP = (byte)((JOYP & 0xF0) | pad);
                 if(pad != 0xF) mmu.requestInterrupt(JOYPAD_INTERRUPT);
             }
-            if (!mmu.isBit(5, mmu.JOYP)) {
-                mmu.JOYP = (byte)((mmu.JOYP & 0xF0) | buttons);
+            if (!isBit(5, JOYP)) {
+                mmu.JOYP = (byte)((JOYP & 0xF0) | buttons);
                 if (buttons != 0xF) mmu.requestInterrupt(JOYPAD_INTERRUPT);
             }
-            if ((mmu.JOYP & 0b00110000) == 0b00110000) mmu.JOYP = 0xFF;
+            if ((JOYP & 0b00110000) == 0b00110000) mmu.JOYP = 0xFF;
         }
 
         private byte GetKeyBit(KeyEventArgs e) {

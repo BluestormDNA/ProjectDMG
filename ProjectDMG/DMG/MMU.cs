@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using static ProjectDMG.Utils.BitOps;
 
 namespace ProjectDMG {
     public class MMU {
@@ -166,21 +167,6 @@ namespace ProjectDMG {
         public void writeWord(ushort addr, ushort w) {
             writeByte((ushort)(addr + 1), (byte)(w >> 8));
             writeByte(addr, (byte)w);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public byte bitSet(byte n, byte v) {
-            return v |= (byte)(1 << n);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public byte bitClear(int n, byte v) {
-            return v &= (byte)~(1 << n);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool isBit(int n, int v) {
-            return ((v >> n) & 1) == 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
