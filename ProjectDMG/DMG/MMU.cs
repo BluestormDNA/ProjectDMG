@@ -169,6 +169,14 @@ namespace ProjectDMG {
             writeByte(addr, (byte)w);
         }
 
+        public byte readOAM(int addr) {
+            return OAM[addr];
+        }
+
+        public byte readVRAM(int addr) {
+            return VRAM[addr & 0x1FFF];
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void requestInterrupt(byte b) {
             IF = bitSet(b, IF);

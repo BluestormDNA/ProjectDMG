@@ -129,10 +129,11 @@ namespace ProjectDMG {
             byte LCDC = mmu.LCDC;
             byte SCY = mmu.SCY;
             byte SCX = mmu.SCX;
+            byte BGP = mmu.BGP;
             bool isWin = isWindow(LCDC, WY, LY);
 
-            byte y = isWin ? (byte)(LY - WY) : (byte)(SCY + LY);
-            byte tileLine = (byte)((y & 7) * 2);
+            int y = isWin ? LY - WY : LY + SCY;
+            int tileLine = (y & 7) * 2;
 
             ushort tileRow = (ushort)(y / 8 * 32);
             ushort tileMap = isWin ? getWindowTileMapAdress(LCDC) : getBGTileMapAdress(LCDC);
@@ -148,18 +149,18 @@ namespace ProjectDMG {
 
                     ushort tileLoc;
                     if (isSignedAdress(LCDC)) {
-                        tileLoc = (ushort)(getTileDataAdress(LCDC) + mmu.readByte(tileAdress) * 16);
+                        tileLoc = (ushort)(getTileDataAdress(LCDC) + mmu.readVRAM(tileAdress) * 16);
                     } else {
-                        tileLoc = (ushort)(getTileDataAdress(LCDC) + ((sbyte)mmu.readByte(tileAdress) + 128) * 16);
+                        tileLoc = (ushort)(getTileDataAdress(LCDC) + ((sbyte)mmu.readVRAM(tileAdress) + 128) * 16);
                     }
 
-                    lo = mmu.readByte((ushort)(tileLoc + tileLine));
-                    hi = mmu.readByte((ushort)(tileLoc + tileLine + 1));
+                    lo = mmu.readVRAM((ushort)(tileLoc + tileLine));
+                    hi = mmu.readVRAM((ushort)(tileLoc + tileLine + 1));
                 }
 
                 int colorBit = 7 - (x & 7); //inversed
                 int colorId = GetColorIdBits(colorBit, lo, hi);
-                int colorIdThroughtPalette = GetColorIdThroughtPalette(mmu.BGP, colorId);
+                int colorIdThroughtPalette = GetColorIdThroughtPalette(BGP, colorId);
 
                 bmp.SetPixel(p, LY, color[colorIdThroughtPalette]);
             }
@@ -206,28 +207,24 @@ namespace ProjectDMG {
             byte LY = mmu.LY;
             byte LCDC = mmu.LCDC;
             for (int i = 0x9C; i >= 0; i -= 4) { //0x9F OAM Size, 40 Sprites x 4 bytes:
-                //Byte0 - Y Position
-                int y = mmu.readByte((ushort)(0xFE00 + i)) - 16; //needs 16 offset
-                //Byte1 - X Position
-                int x = mmu.readByte((ushort)(0xFE00 + i + 1)) - 8; //needs 8 offset
-                //Byte2 - Tile/Pattern Number
-                byte tile = mmu.readByte((ushort)(0xFE00 + i + 2));
-                //Byte3 - Attributes/Flags:
-                byte attr = mmu.readByte((ushort)(0xFE00 + i + 3));
+                int y = mmu.readOAM(i) - 16;    //Byte0 - Y Position //needs 16 offset
+                int x = mmu.readOAM(i + 1) - 8; //Byte1 - X Position //needs 8 offset
+                byte tile = mmu.readOAM(i + 2); //Byte2 - Tile/Pattern Number
+                byte attr = mmu.readOAM(i + 3); //Byte3 - Attributes/Flags
 
                 if ((LY >= y) && (LY < (y + spriteSize(LCDC)))) {
                     byte palette = isBit(4, attr) ? mmu.OBP1 : mmu.OBP0; //Bit4   Palette number  **Non CGB Mode Only** (0=OBP0, 1=OBP1)
 
-                    byte tileRow = isYFlipped(attr) ? (byte)(spriteSize(LCDC) - 1 - (LY - y)) : (byte)(LY - y);
+                    int tileRow = isYFlipped(attr) ? spriteSize(LCDC) - 1 - (LY - y) : (LY - y);
 
                     ushort tileddress = (ushort)(0x8000 + (tile * 16) + (tileRow * 2));
-                    byte lo = mmu.readByte(tileddress);
-                    byte hi = mmu.readByte((ushort)(tileddress + 1));
+                    byte lo = mmu.readVRAM(tileddress);
+                    byte hi = mmu.readVRAM((ushort)(tileddress + 1));
 
                     for (int p = 0; p < 8; p++) {
                         int IdPos = isXFlipped(attr) ? p : 7 - p;
                         int colorId = GetColorIdBits(IdPos, lo, hi);
-                        byte colorIdThroughtPalette = (byte)GetColorIdThroughtPalette(palette, colorId);
+                        int colorIdThroughtPalette = GetColorIdThroughtPalette(palette, colorId);
 
                         if ((x + p) >= 0 && (x + p) < SCREEN_WIDTH) {
                             if (!isTransparent(colorId) && (isAboveBG(attr) || isBGWhite(mmu.BGP, x + p, LY))) {
