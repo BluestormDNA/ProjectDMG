@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ProjectDMG {
@@ -19,11 +20,13 @@ namespace ProjectDMG {
             Bitmap = new Bitmap(Width, Height, Width * 4, PixelFormat.Format32bppRgb, BitsHandle.AddrOfPinnedObject());
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetPixel(int x, int y, int colour) {
             int index = x + (y * Width);
             Bits[index] = colour;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetPixel(int x, int y) {
             int index = x + (y * Width);
             return Bits[index];
