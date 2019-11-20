@@ -109,6 +109,42 @@ namespace ProjectDMG {
                 default:
                     return 0xFF;
             }
+
+            //tests to simplify reads... somehow they are slower :\
+            //ushort add = (ushort)(addr >> 12);
+            //switch (add) {
+            //    case 0x0:
+            //    case 0x1:
+            //    case 0x2:
+            //    case 0x3:return gamePak.ReadLoROM(addr);
+            //    case 0x4:
+            //    case 0x5:
+            //    case 0x6:
+            //    case 0x7: return gamePak.ReadHiROM(addr);
+            //    case 0x8:
+            //    case 0x9: return VRAM[addr & 0x1FFF];
+            //    case 0xA:
+            //    case 0xB: return gamePak.ReadERAM(addr);
+            //    case 0xC: return WRAM0[addr & 0xFFF];
+            //    case 0xD: return WRAM1[addr & 0xFFF];
+            //    case 0xE: return WRAM0[addr & 0xFFF];
+            //    case 0xF:
+            //        switch (addr) {
+            //            case ushort _ when addr <= 0xFDFF:    // E000-FDFF Same as 0xC000-DDFF(ECHO)
+            //                return WRAM1[addr & 0xFFF];
+            //            case ushort _ when addr <= 0xFE9F:    // FE00-FE9F Sprite Attribute Table(OAM)
+            //                return OAM[addr - 0xFE00];
+            //            case ushort _ when addr <= 0xFEFF:    // FEA0-FEFF Not Usable 0
+            //                return 0x00;
+            //            case ushort _ when addr <= 0xFF7F:    // FF00-FF7F IO Ports
+            //                return IO[addr & 0x7F];
+            //            case ushort _ when addr <= 0xFFFF:    // FF80-FFFE High RAM(HRAM)
+            //                return HRAM[addr & 0x7F];
+            //            default:
+            //                return 0xFF;
+            //        }
+            //    default: return 0xFF;
+            //}
         }
 
         public void writeByte(ushort addr, byte b) {
