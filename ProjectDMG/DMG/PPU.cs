@@ -132,8 +132,8 @@ namespace ProjectDMG {
             byte BGP = mmu.BGP;
             bool isWin = isWindow(LCDC, WY, LY);
 
-            int y = isWin ? LY - WY : LY + SCY;
-            int tileLine = (y & 7) * 2;
+            byte y = isWin ? (byte)(LY - WY) : (byte)(LY + SCY);
+            byte tileLine = (byte)((y & 7) * 2);
 
             ushort tileRow = (ushort)(y / 8 * 32);
             ushort tileMap = isWin ? getWindowTileMapAdress(LCDC) : getBGTileMapAdress(LCDC);
