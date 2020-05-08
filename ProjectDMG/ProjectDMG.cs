@@ -70,8 +70,6 @@ namespace ProjectDMG {
                         joypad.update(mmu);
                         handleInterrupts();
                     }
-
-                    window.pictureBox.Invalidate();
                     fpsCounter++;
                     cyclesThisUpdate -= Constants.CYCLES_PER_UPDATE;
                 //}
